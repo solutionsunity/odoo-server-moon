@@ -1,0 +1,18 @@
+[Unit]
+Description=Odoo Dev Server Monitoring Tool
+After=network.target
+
+[Service]
+Type=simple
+User=gbadmin
+WorkingDirectory=/home/gbadmin/dev-server-moon
+ExecStart=/usr/bin/python3 -m app.main
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=odoo-dev-monitor
+Environment="PYTHONUNBUFFERED=1"
+
+[Install]
+WantedBy=multi-user.target

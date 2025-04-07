@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odoo Dev Server Monitor</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <link rel="icon" href="{{ url_for('static', path='/img/favicon.ico') }}" type="image/x-icon">
+    <script src="{{ url_for('static', path='/js/dashboard.js') }}" defer></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Odoo Dev Server Monitor</h1>
+            <div class="connection-status" id="connection-status">
+                <span class="status-indicator disconnected"></span>
+                <span class="status-text">Disconnected</span>
+            </div>
+        </header>
+
+        <!-- System Metrics at Top -->
+        <section class="system-metrics">
+            <div class="metric" id="cpu-metric">
+                <h3>CPU</h3>
+                <div class="metric-value">0%</div>
+                <div class="progress-bar">
+                    <div class="progress" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="metric" id="memory-metric">
+                <h3>Memory</h3>
+                <div class="metric-value">0%</div>
+                <div class="progress-bar">
+                    <div class="progress" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="metric" id="disk-metric">
+                <h3>Disk</h3>
+                <div class="metric-value">0%</div>
+                <div class="progress-bar">
+                    <div class="progress" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="system-info" id="system-info">
+                <h3>System Info</h3>
+                <div class="info-content">Loading...</div>
+            </div>
+        </section>
+
+        <!-- Main Content: Services on Left, Modules on Right -->
+        <div class="main-content">
+            <section class="services-panel">
+                <div class="panel-header">
+                    <h2>Services</h2>
+                    <button class="refresh-btn" id="refresh-services-btn" title="Refresh Services">
+                        <span class="refresh-icon">↻</span>
+                    </button>
+                </div>
+                <div class="services-list" id="services-list">
+                    <div class="service-item loading">
+                        <div class="service-name">Loading services...</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="modules-panel">
+                <div class="panel-header">
+                    <h2>Module Directories</h2>
+                    <button class="refresh-btn" id="refresh-modules-btn" title="Refresh Modules">
+                        <span class="refresh-icon">↻</span>
+                    </button>
+                </div>
+                <div class="modules-list" id="modules-list">
+                    <div class="module-item loading">
+                        <div class="module-path">Loading modules...</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Logs Panel at Bottom -->
+        <section class="logs-panel">
+            <div class="panel-header">
+                <h2>Logs</h2>
+                <button class="clear-btn" id="clear-logs-btn" title="Clear Logs">
+                    <span class="clear-icon">✕</span>
+                </button>
+            </div>
+            <div class="logs-content" id="logs-content">
+                <div class="log-entry">System starting...</div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast" id="toast">
+        <div class="toast-content"></div>
+    </div>
+
+    <!-- Modal for Module Details -->
+    <div class="modal" id="module-details-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Module Details</h3>
+                <button class="close-btn" id="close-modal-btn">✕</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Content will be dynamically inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="modal-action-btn">Fix Permissions</button>
+                <button class="btn btn-secondary" id="modal-close-btn">Close</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8008
+  },
+  "monitoring": {
+    "refresh_interval": 5,
+    "max_log_entries": 100
+  },
+  "services": {
+    "odoo": {
+      "service_name": "odoo",
+      "config_file": "/etc/odoo/odoo.conf"
+    },
+    "postgres": {
+      "service_name": "postgresql",
+      "instances": ["postgresql@14-main"],
+      "auto_detect": true
+    }
+  },
+  "logging": {
+    "level": "info",
+    "file": "logs/monitor.log"
+  }
+}
