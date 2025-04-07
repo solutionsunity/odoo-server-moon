@@ -24,7 +24,27 @@ A web-based tool for monitoring and managing Odoo development servers locally. T
 - PostgreSQL
 - sudo access (for service control and permission fixes)
 
-### Quick Installation
+### One-Line Installation
+
+Install with a single command (requires sudo):
+
+```bash
+curl -sSL https://raw.githubusercontent.com/solutionsunity/odoo-server-moon/main/scripts/install-remote.sh | sudo bash
+```
+
+With custom options:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/solutionsunity/odoo-server-moon/main/scripts/install-remote.sh | sudo bash -s -- --dir /opt/custom-path --port 8080
+```
+
+Available options:
+- `--dir DIR`: Installation directory (default: /opt/odoo-server-moon)
+- `--branch BRANCH`: Git branch to use (default: main)
+- `--port PORT`: Port to run the server on (default: 8008)
+- `--no-start`: Don't start the service after installation
+
+### Manual Installation
 
 1. Clone the repository:
    ```bash
