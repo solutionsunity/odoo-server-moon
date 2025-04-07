@@ -103,7 +103,7 @@ chown -R $(logname):$(logname) "$INSTALL_DIR"
 
 # Install as a service
 echo "Installing systemd service..."
-cp odoo-dev-monitor.service /etc/systemd/system/
+cp scripts/odoo-dev-monitor.service /etc/systemd/system/
 
 # Update the service file
 sed -i "s|WorkingDirectory=.*|WorkingDirectory=$INSTALL_DIR|g" /etc/systemd/system/odoo-dev-monitor.service
@@ -119,7 +119,7 @@ systemctl enable odoo-dev-monitor.service
 if [ "$AUTO_START" = "yes" ]; then
   echo "Starting service..."
   systemctl start odoo-dev-monitor.service
-  
+
   # Check status
   echo "Service status:"
   systemctl status odoo-dev-monitor.service

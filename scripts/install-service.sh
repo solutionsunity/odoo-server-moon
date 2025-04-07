@@ -29,7 +29,7 @@ chown -R $(logname):$(logname) "$SCRIPT_DIR"
 
 # Copy service file
 echo "Installing systemd service..."
-cp "$SCRIPT_DIR/odoo-dev-monitor.service" /etc/systemd/system/
+cp "$SCRIPT_DIR/scripts/odoo-dev-monitor.service" /etc/systemd/system/
 
 # Update the WorkingDirectory in the service file
 sed -i "s|WorkingDirectory=.*|WorkingDirectory=$SCRIPT_DIR|g" /etc/systemd/system/odoo-dev-monitor.service

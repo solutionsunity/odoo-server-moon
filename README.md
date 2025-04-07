@@ -52,9 +52,13 @@ Available options:
    cd odoo-server-moon
    ```
 
-2. Run the application:
+2. Run the application (choose one method):
    ```bash
-   ./run.sh
+   # Using the shell script
+   ./run.sh  # Symlink to scripts/run.sh
+
+   # OR using Python directly
+   ./odoo-monitor.py
    ```
 
 3. Access the web interface at http://localhost:8008
@@ -64,7 +68,7 @@ Available options:
 To install the tool as a systemd service that runs automatically:
 
 ```bash
-sudo ./install-service.sh
+sudo ./scripts/install-service.sh
 ```
 
 This will:
@@ -119,7 +123,15 @@ odoo-server-moon/
 │   └── templates/        # HTML templates
 ├── config/               # Configuration files
 ├── docs/                 # Documentation
-└── tests/                # Test cases
+├── scripts/              # Scripts for installation and running
+│   ├── install-remote.sh # One-line installation script
+│   ├── install-service.sh # Local service installation
+│   ├── odoo-dev-monitor.service # Systemd service file
+│   ├── run.sh            # Script to run the application
+│   └── uninstall-service.sh # Service uninstallation
+├── tests/                # Test cases
+├── odoo-monitor.py       # Main Python entry point
+└── run.sh                # Symlink to scripts/run.sh
 ```
 
 ### Running Tests
