@@ -23,8 +23,7 @@ const closeModalBtn = document.getElementById('close-modal-btn');
 const refreshServicesBtn = document.getElementById('refresh-services-btn');
 const refreshModulesBtn = document.getElementById('refresh-modules-btn');
 const clearLogsBtn = document.getElementById('clear-logs-btn');
-const tabButtons = document.querySelectorAll('.tab-btn');
-const tabContents = document.querySelectorAll('.tab-content');
+
 
 // WebSocket connection
 let socket;
@@ -52,10 +51,7 @@ function initDashboard() {
     refreshModulesBtn.addEventListener('click', fetchModules);
     clearLogsBtn.addEventListener('click', clearLogs);
 
-    // Add tab switching event listeners
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => switchTab(button.dataset.tab));
-    });
+
 
     // Modal event listeners
     closeModalBtn.addEventListener('click', closeModal);
@@ -173,12 +169,44 @@ function updateModulesList(modules) {
 
     for (const module of modules) {
         const statusClass = getStatusClass(module.status);
+        const permissions = module.permissions || {};
+
+        // Create a status message
+        let statusMessage = module.status;
+        let statusDetails = '';
+
+        if (module.status === 'error') {
+            statusMessage = 'Error';
+            if (!permissions.readable || !permissions.executable) {
+                statusDetails = 'Directory not accessible';
+            } else if (permissions.owner && permissions.owner !== 'odoo') {
+                statusDetails = `Wrong owner: ${permissions.owner}`;
+            }
+        } else if (module.status === 'warning') {
+            statusMessage = 'Warning';
+            if (!permissions.writable) {
+                statusDetails = 'Not writable';
+            } else if (!permissions.files_consistent) {
+                statusDetails = 'Inconsistent permissions';
+            } else if (permissions.group && permissions.group !== 'odoo') {
+                statusDetails = `Wrong group: ${permissions.group}`;
+            }
+        } else if (module.status === 'ok') {
+            statusMessage = 'OK';
+            statusDetails = 'Permissions correct';
+        }
 
         html += `
             <div class="module-item" data-path="${module.path}" data-status="${module.status}">
                 <div class="module-path">${module.path}</div>
-                <div class="module-status status-${statusClass}">${module.status}</div>
-                <button class="btn btn-fix" data-action="fix" data-path="${module.path}" ${module.status === 'ok' ? 'disabled' : ''}>Fix</button>
+                <div class="module-info">
+                    <div class="module-status status-${statusClass}">${statusMessage}</div>
+                    ${statusDetails ? `<div class="module-status-details">${statusDetails}</div>` : ''}
+                </div>
+                <div class="module-actions">
+                    <button class="btn btn-details" data-action="show-details" data-path="${module.path}">Details</button>
+                    ${module.status !== 'ok' ? `<button class="btn btn-fix" data-action="fix" data-path="${module.path}">Fix</button>` : ''}
+                </div>
             </div>
         `;
     }
@@ -314,6 +342,9 @@ function handleButtonClicks(event) {
         } else if (action === 'fix') {
             const path = target.dataset.path;
             fixPermissions(path);
+        } else if (action === 'show-details') {
+            const path = target.dataset.path;
+            showModuleDetailsFromPath(path);
         }
     }
 }
@@ -619,6 +650,28 @@ function handleModalAction() {
     }
 }
 
+// Show module details from path
+async function showModuleDetailsFromPath(path) {
+    try {
+        addLogEntry(`Fetching details for ${path}...`);
+
+        const response = await fetch(`/api/modules/details?path=${encodeURIComponent(path)}`);
+        const data = await response.json();
+
+        if (response.ok) {
+            showModuleDetails(path, data.permissions);
+            addLogEntry(`Loaded details for ${path}`);
+        } else {
+            showToast(`Error: ${data.detail || 'Failed to load module details'}`);
+            addLogEntry(`Error loading details for ${path}: ${data.detail || 'Unknown error'}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error loading module details:', error);
+        showToast(`Error loading module details: ${error.message}`);
+        addLogEntry(`Error loading details for ${path}: ${error.message}`, 'error');
+    }
+}
+
 // Show a toast notification
 function showToast(message, duration = 3000) {
     const toastContent = toast.querySelector('.toast-content');
@@ -650,31 +703,7 @@ function getStatusClass(status) {
     }
 }
 
-// Switch between tabs
-function switchTab(tabId) {
-    // Update tab buttons
-    tabButtons.forEach(button => {
-        if (button.dataset.tab === tabId) {
-            button.classList.add('active');
-        } else {
-            button.classList.remove('active');
-        }
-    });
 
-    // Update tab content
-    tabContents.forEach(content => {
-        if (content.id === `${tabId}-tab`) {
-            content.classList.remove('hidden');
-        } else {
-            content.classList.add('hidden');
-        }
-    });
-
-    // If switching to users tab, fetch users data
-    if (tabId === 'users' && typeof fetchUsers === 'function') {
-        fetchUsers();
-    }
-}
 
 // Initialize the dashboard when the DOM is loaded
 document.addEventListener('DOMContentLoaded', initDashboard);

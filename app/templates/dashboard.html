@@ -51,14 +51,8 @@
             </div>
         </section>
 
-        <!-- Tabs Navigation -->
-        <div class="tabs">
-            <button class="tab-btn active" data-tab="services-modules">Services & Modules</button>
-            <button class="tab-btn" data-tab="users">User Management</button>
-        </div>
-
         <!-- Main Content: Services on Left, Modules on Right -->
-        <div class="main-content tab-content" id="services-modules-tab">
+        <div class="main-content">
             <section class="services-panel">
                 <div class="panel-header">
                     <h2>Services</h2>
@@ -75,41 +69,31 @@
 
             <section class="modules-panel">
                 <div class="panel-header">
-                    <h2>Module Directories</h2>
+                    <h2>Module Directories & Users</h2>
                     <button class="refresh-btn" id="refresh-modules-btn" title="Refresh Modules">
                         <span class="refresh-icon">↻</span>
                     </button>
                 </div>
+
+                <!-- User Management Info -->
+                <div class="user-management-summary">
+                    <div class="info-row">
+                        <div class="info-item">
+                            <span class="info-label">Odoo User:</span>
+                            <span class="info-value" id="odoo-user">Loading...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Odoo Group:</span>
+                            <span class="info-value" id="odoo-group">Loading...</span>
+                        </div>
+                        <button class="btn btn-small" id="show-users-btn">Manage Users</button>
+                    </div>
+                </div>
+
+                <!-- Module Directories -->
                 <div class="modules-list" id="modules-list">
                     <div class="module-item loading">
                         <div class="module-path">Loading modules...</div>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <!-- User Management Tab -->
-        <div class="main-content tab-content hidden" id="users-tab">
-            <section class="users-panel">
-                <div class="panel-header">
-                    <h2>User Management</h2>
-                    <button class="refresh-btn" id="refresh-users-btn" title="Refresh Users">
-                        <span class="refresh-icon">↻</span>
-                    </button>
-                </div>
-                <div class="users-info">
-                    <div class="info-item">
-                        <span class="info-label">Odoo User:</span>
-                        <span class="info-value" id="odoo-user">Loading...</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Odoo Group:</span>
-                        <span class="info-value" id="odoo-group">Loading...</span>
-                    </div>
-                </div>
-                <div class="users-list" id="users-list">
-                    <div class="user-item loading">
-                        <div class="user-name">Loading users...</div>
                     </div>
                 </div>
             </section>
@@ -147,6 +131,36 @@
             <div class="modal-footer">
                 <button class="btn btn-primary" id="modal-action-btn">Fix Permissions</button>
                 <button class="btn btn-secondary" id="modal-close-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for User Management -->
+    <div class="modal" id="users-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="users-modal-title">User Management</h3>
+                <button class="close-btn" id="close-users-modal-btn">✕</button>
+            </div>
+            <div class="modal-body" id="users-modal-body">
+                <div class="users-info">
+                    <div class="info-item">
+                        <span class="info-label">Odoo User:</span>
+                        <span class="info-value" id="modal-odoo-user">Loading...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Odoo Group:</span>
+                        <span class="info-value" id="modal-odoo-group">Loading...</span>
+                    </div>
+                </div>
+                <div class="users-list" id="users-list">
+                    <div class="user-item loading">
+                        <div class="user-name">Loading users...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="users-modal-close-btn">Close</button>
             </div>
         </div>
     </div>
