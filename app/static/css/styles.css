@@ -143,8 +143,9 @@ h1, h2, h3 {
 }
 
 .btn-small {
-    padding: 5px 10px;
-    font-size: 0.8rem;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    min-width: 80px;
 }
 
 /* Main content layout */
@@ -386,7 +387,7 @@ h1, h2, h3 {
 
 .module-header {
     display: grid;
-    grid-template-columns: 1fr auto auto auto;
+    grid-template-columns: minmax(200px, 1fr) 150px 100px auto;
     grid-template-areas: "path ownership permissions actions";
     gap: 20px;
     padding: 10px 12px;
@@ -401,14 +402,17 @@ h1, h2, h3 {
 
 .module-ownership-header {
     grid-area: ownership;
+    text-align: right;
 }
 
 .module-permissions-header {
     grid-area: permissions;
+    text-align: right;
 }
 
 .module-actions-header {
     grid-area: actions;
+    text-align: right;
 }
 
 .module-note {
@@ -523,7 +527,7 @@ h1, h2, h3 {
 
 .module-item {
     display: grid;
-    grid-template-columns: 1fr auto auto auto;
+    grid-template-columns: minmax(200px, 1fr) 150px 100px auto;
     grid-template-areas: "path ownership permissions actions";
     gap: 20px;
     align-items: center;
@@ -550,8 +554,10 @@ h1, h2, h3 {
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: flex-end;
     gap: 8px;
     white-space: nowrap;
+    text-align: right;
 }
 
 .module-permissions {
@@ -559,8 +565,10 @@ h1, h2, h3 {
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: flex-end;
     gap: 8px;
     white-space: nowrap;
+    text-align: right;
 }
 
 .module-actions {
@@ -568,6 +576,7 @@ h1, h2, h3 {
     display: flex;
     gap: 5px;
     flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .module-status {
@@ -602,11 +611,14 @@ h1, h2, h3 {
 
 .status-badge {
     display: inline-block;
-    padding: 3px 8px;
+    padding: 2px 5px;
     border-radius: 3px;
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     font-weight: bold;
-    margin-left: 8px;
+    margin-left: 5px;
+    text-transform: uppercase;
+    min-width: 45px;
+    text-align: center;
 }
 
 .status-valid {
