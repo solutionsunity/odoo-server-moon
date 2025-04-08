@@ -525,6 +525,30 @@ h1, h2, h3 {
     color: var(--danger-color);
 }
 
+.inconsistent-files,
+.odoo-group-members {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: var(--light-color);
+}
+
+.inconsistent-files h4,
+.odoo-group-members h4 {
+    margin-top: 0;
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.inconsistent-files ul,
+.odoo-group-members ul {
+    margin: 0;
+    padding-left: 20px;
+    font-family: monospace;
+    font-size: 0.9rem;
+}
+
 /* Loading states */
 .loading {
     opacity: 0.7;

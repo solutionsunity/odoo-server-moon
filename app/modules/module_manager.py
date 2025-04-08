@@ -40,6 +40,49 @@ def get_odoo_gid():
         # If odoo group doesn't exist or grp module is not available, return -1
         return -1
 
+
+def get_odoo_group_members():
+    """
+    Get the list of users in the odoo group.
+
+    Returns:
+        list: List of usernames in the odoo group, or empty list if not found
+    """
+    try:
+        import grp
+        return grp.getgrnam('odoo').gr_mem
+    except (KeyError, ImportError):
+        # If odoo group doesn't exist or grp module is not available, return empty list
+        return []
+
+
+def is_user_in_odoo_group(username):
+    """
+    Check if a user is in the odoo group.
+
+    Args:
+        username: Username to check
+
+    Returns:
+        bool: True if user is in odoo group, False otherwise
+    """
+    try:
+        # First check if user exists
+        import pwd
+        pwd.getpwnam(username)  # Will raise KeyError if user doesn't exist
+
+        # Check if user is in odoo group
+        members = get_odoo_group_members()
+        if username in members:
+            return True
+
+        # Check if odoo is the user's primary group
+        odoo_gid = get_odoo_gid()
+        user_gid = pwd.getpwnam(username).pw_gid
+        return user_gid == odoo_gid
+    except (KeyError, ImportError):
+        return False
+
 # Set up logging
 logger = logging.getLogger(__name__)
 
@@ -121,36 +164,72 @@ def check_directory_permissions(directory: str) -> Dict[str, Any]:
         others_writable = bool(dir_mode & stat.S_IWOTH)
         others_executable = bool(dir_mode & stat.S_IXOTH)
 
-        # Check file permissions consistency
+        # Get owner and group IDs
+        odoo_uid = get_odoo_uid()
+        odoo_gid = get_odoo_gid()
+
+        # Check if directory has correct ownership
+        is_odoo_owner = (dir_stat.st_uid == odoo_uid)
+        is_odoo_group = (dir_stat.st_gid == odoo_gid)
+
+        # Use find command to check for non-compliant files (faster than Python traversal)
         files_consistent = True
         inconsistent_files = []
 
-        # Check a sample of files in the directory
-        for root, dirs, files in os.walk(directory, topdown=True, followlinks=False):
-            for file in files[:10]:  # Check up to 10 files per directory
-                file_path = os.path.join(root, file)
-                try:
-                    file_stat = os.stat(file_path)
-                    file_mode = file_stat.st_mode
+        # Check for files/dirs with incorrect ownership
+        try:
+            # Find files not owned by odoo user (limit to 5)
+            cmd = [
+                "find", directory,
+                "-type", "f",
+                "!", "-user", "odoo",
+                "-o", "!", "-group", "odoo",
+                "-maxdepth", "3",  # Limit depth for performance
+                "-print",
+                "-quit"  # Stop after first match
+            ]
+            result = subprocess.run(cmd, capture_output=True, text=True)
 
-                    # Check if file permissions match directory permissions
-                    if (bool(file_mode & stat.S_IRGRP) != group_readable or
-                        bool(file_mode & stat.S_IWGRP) != group_writable or
-                        bool(file_mode & stat.S_IROTH) != others_readable or
-                        bool(file_mode & stat.S_IWOTH) != others_writable):
-                        files_consistent = False
-                        inconsistent_files.append(file_path)
-                        if len(inconsistent_files) >= 5:  # Limit the number of inconsistent files to report
-                            break
-                except Exception as e:
-                    logger.warning(f"Error checking file permissions for {file_path}: {e}")
+            if result.stdout.strip():
+                files_consistent = False
+                inconsistent_files = result.stdout.strip().split('\n')[:5]
 
-            if not files_consistent and len(inconsistent_files) >= 5:
-                break
+            # If no ownership issues, check for permission issues
+            if files_consistent:
+                # Find files with incorrect permissions
+                cmd = [
+                    "find", directory,
+                    "-type", "f",
+                    "!", "-perm", "-664",  # Files should be at least 664
+                    "-maxdepth", "3",
+                    "-print",
+                    "-quit"
+                ]
+                result = subprocess.run(cmd, capture_output=True, text=True)
 
-            # Don't recurse too deep
-            if root != directory:
-                dirs[:] = []  # Don't go into subdirectories
+                if result.stdout.strip():
+                    files_consistent = False
+                    inconsistent_files = result.stdout.strip().split('\n')[:5]
+
+                # Find directories with incorrect permissions
+                cmd = [
+                    "find", directory,
+                    "-type", "d",
+                    "!", "-perm", "-775",  # Directories should be at least 775
+                    "-maxdepth", "3",
+                    "-print",
+                    "-quit"
+                ]
+                result = subprocess.run(cmd, capture_output=True, text=True)
+
+                if result.stdout.strip() and files_consistent:  # Only add if we don't already have inconsistent files
+                    files_consistent = False
+                    inconsistent_files = result.stdout.strip().split('\n')[:5]
+
+        except Exception as e:
+            logger.warning(f"Error using find command: {e}")
+            # Fall back to basic check if find command fails
+            files_consistent = is_odoo_owner and is_odoo_group
 
         # Determine overall status
         # Check if odoo is the owner
@@ -186,6 +265,13 @@ def check_directory_permissions(directory: str) -> Dict[str, Any]:
         except (KeyError, ImportError):
             group_name = str(dir_stat.st_gid)
 
+        # Get odoo group members
+        odoo_group_members = get_odoo_group_members()
+
+        # Check if current user is in odoo group
+        current_user = os.getlogin()
+        current_user_in_odoo_group = is_user_in_odoo_group(current_user)
+
         result = {
             "status": status,
             "readable": readable,
@@ -200,7 +286,10 @@ def check_directory_permissions(directory: str) -> Dict[str, Any]:
             "files_consistent": files_consistent,
             "owner": owner_name,
             "group": group_name,
-            "is_odoo_owner": is_odoo_owner
+            "is_odoo_owner": is_odoo_owner,
+            "is_odoo_group": is_odoo_group,
+            "odoo_group_members": odoo_group_members,
+            "current_user_in_odoo_group": current_user_in_odoo_group
         }
 
         if not files_consistent:
@@ -266,36 +355,35 @@ def fix_directory_permissions(directory: str) -> Dict[str, Any]:
         except Exception as e:
             logger.warning(f"Could not add user to odoo group: {e}")
 
-        # Now, recursively fix permissions for all files and subdirectories
+        # Use recursive commands to fix permissions efficiently
         fixed_count = 0
         failed_count = 0
 
-        for root, dirs, files in os.walk(directory):
-            # Fix directory permissions
-            for d in dirs:
-                dir_path = os.path.join(root, d)
-                try:
-                    # Directories need execute permission
-                    # 775 gives read/write/execute to owner and group, read/execute to others
-                    subprocess.run(["sudo", "chmod", "775", dir_path], check=True)
-                    subprocess.run(["sudo", "chown", "odoo:odoo", dir_path], check=True)
-                    fixed_count += 1
-                except Exception as e:
-                    logger.warning(f"Failed to fix permissions for directory {dir_path}: {e}")
-                    failed_count += 1
+        try:
+            # First, recursively set ownership to odoo:odoo
+            logger.info(f"Setting ownership recursively for {directory}")
+            chown_cmd = ["sudo", "chown", "-R", "odoo:odoo", directory]
+            subprocess.run(chown_cmd, check=True)
 
-            # Fix file permissions
-            for f in files:
-                file_path = os.path.join(root, f)
-                try:
-                    # Files don't need execute permission
-                    # 664 gives read/write to owner and group, read to others
-                    subprocess.run(["sudo", "chmod", "664", file_path], check=True)
-                    subprocess.run(["sudo", "chown", "odoo:odoo", file_path], check=True)
-                    fixed_count += 1
-                except Exception as e:
-                    logger.warning(f"Failed to fix permissions for file {file_path}: {e}")
-                    failed_count += 1
+            # Count the number of files and directories affected
+            count_cmd = ["find", directory, "-type", "f", "-o", "-type", "d", "-print"]
+            result = subprocess.run(count_cmd, capture_output=True, text=True, check=True)
+            affected_items = len(result.stdout.strip().split('\n'))
+            fixed_count += affected_items
+
+            # Set directory permissions recursively
+            logger.info(f"Setting directory permissions recursively for {directory}")
+            dir_chmod_cmd = ["sudo", "find", directory, "-type", "d", "-exec", "chmod", "775", "{}", ";"]
+            subprocess.run(dir_chmod_cmd, check=True)
+
+            # Set file permissions recursively
+            logger.info(f"Setting file permissions recursively for {directory}")
+            file_chmod_cmd = ["sudo", "find", directory, "-type", "f", "-exec", "chmod", "664", "{}", ";"]
+            subprocess.run(file_chmod_cmd, check=True)
+
+        except Exception as e:
+            logger.error(f"Error fixing permissions recursively: {e}")
+            failed_count += 1
 
         # Determine the status
         if failed_count == 0:

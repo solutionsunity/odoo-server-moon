@@ -496,6 +496,8 @@ function showModuleDetails(path, permissions) {
         { key: 'owner', label: 'Owner' },
         { key: 'group', label: 'Group' },
         { key: 'is_odoo_owner', label: 'Odoo is Owner' },
+        { key: 'is_odoo_group', label: 'Odoo is Group' },
+        { key: 'current_user_in_odoo_group', label: 'Current User in Odoo Group' },
         { key: 'readable', label: 'Readable' },
         { key: 'writable', label: 'Writable' },
         { key: 'executable', label: 'Executable' },
@@ -531,6 +533,26 @@ function showModuleDetails(path, permissions) {
     // Add error message if any
     if (permissions.error) {
         content += `<div class="error-message">${permissions.error}</div>`;
+    }
+
+    // Add inconsistent files if any
+    if (permissions.inconsistent_files && permissions.inconsistent_files.length > 0) {
+        content += '<div class="inconsistent-files"><h4>Inconsistent Files</h4><ul>';
+        permissions.inconsistent_files.forEach(file => {
+            content += `<li>${file}</li>`;
+        });
+        content += '</ul></div>';
+    }
+
+    // Add odoo group members if any
+    if (permissions.odoo_group_members && permissions.odoo_group_members.length > 0) {
+        content += '<div class="odoo-group-members"><h4>Odoo Group Members</h4><ul>';
+        permissions.odoo_group_members.forEach(user => {
+            content += `<li>${user}</li>`;
+        });
+        content += '</ul></div>';
+    } else {
+        content += '<div class="odoo-group-members"><h4>Odoo Group Members</h4><p>No users found in odoo group</p></div>';
     }
 
     // Set modal content
