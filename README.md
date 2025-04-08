@@ -15,7 +15,7 @@ A web-based tool for monitoring and managing Odoo development servers locally. T
   - Display permissions for each directory
   - Provide one-click fix for directory permissions
 
-## Installation
+## Quick Start Guide
 
 ### Prerequisites
 
@@ -24,7 +24,9 @@ A web-based tool for monitoring and managing Odoo development servers locally. T
 - PostgreSQL
 - sudo access (for service control and permission fixes)
 
-### One-Line Installation
+### Installation
+
+#### One-Line Installation (Recommended)
 
 Install with a single command (requires sudo):
 
@@ -32,7 +34,16 @@ Install with a single command (requires sudo):
 curl -sSL https://raw.githubusercontent.com/solutionsunity/odoo-server-moon/main/scripts/install-remote.sh | sudo bash
 ```
 
-With custom options:
+This will:
+- Download and install the tool to `/opt/odoo-server-moon`
+- Set up a systemd service that starts automatically
+- Start the service immediately
+
+After installation, access the web interface at http://localhost:8008
+
+#### Custom Installation Options
+
+You can customize the installation with additional options:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/solutionsunity/odoo-server-moon/main/scripts/install-remote.sh | sudo bash -s -- --dir /opt/custom-path --port 8080
@@ -45,7 +56,37 @@ Available options:
 - `--no-start`: Don't start the service after installation
 - `--no-update`: Don't update if already installed
 
-### Manual Installation
+### Updating
+
+When a new version is available, update your installation with:
+
+```bash
+sudo /opt/odoo-server-moon/scripts/update.sh
+```
+
+Or use the installation script which automatically updates existing installations:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/solutionsunity/odoo-server-moon/main/scripts/install-remote.sh | sudo bash
+```
+
+### Uninstalling
+
+To completely remove the tool from your system:
+
+```bash
+sudo /opt/odoo-server-moon/scripts/uninstall.sh
+```
+
+This will:
+- Stop and remove the systemd service
+- Ask if you want to remove all application files
+
+Options:
+- `--remove-files`: Remove all application files without asking
+- `--keep-files`: Keep application files, only remove the service
+
+### Manual Installation (Alternative)
 
 1. Clone the repository:
    ```bash
@@ -56,7 +97,7 @@ Available options:
 2. Run the application (choose one method):
    ```bash
    # Using the shell script
-   ./run.sh  # Symlink to scripts/run.sh
+   ./run.sh
 
    # OR using Python directly
    ./odoo-monitor.py
@@ -64,19 +105,10 @@ Available options:
 
 3. Access the web interface at http://localhost:8008
 
-### Install as a Service
-
-To install the tool as a systemd service that runs automatically:
-
-```bash
-sudo ./scripts/install-service.sh
-```
-
-This will:
-- Install dependencies
-- Create a systemd service
-- Enable the service to start on boot
-- Start the service immediately
+4. To install as a service:
+   ```bash
+   sudo ./scripts/install-service.sh
+   ```
 
 ## Configuration
 
@@ -87,50 +119,41 @@ Configuration is stored in `config/config.json`. You can modify:
 - Service names
 - PostgreSQL instance detection
 
-## Usage
+## Usage Guide
 
 ### Web Interface
 
-The web interface provides:
-- System metrics (CPU, memory, disk)
-- Service status and control buttons
-- Module directories with permission status
-- Detailed permission information
-- One-click permission fixes
+After installation, access the web interface at http://localhost:8008 (or your custom port).
 
-### Service Management
+The dashboard provides:
 
-If installed as a service:
+1. **System Metrics** - Monitor CPU, memory, and disk usage
+2. **Service Control** - Start, stop, and restart Odoo and PostgreSQL services
+3. **Module Management** - View and fix permissions for Odoo module directories
+
+### Common Tasks
+
+#### Fixing Module Permissions
+
+1. In the Modules section, look for directories with a warning or error status
+2. Click on the directory to see detailed permission information
+3. Click the "Fix Permissions" button to automatically correct permissions
+
+#### Managing Services
+
+- Use the Start/Stop/Restart buttons next to each service
+- The service status updates in real-time
+- PostgreSQL instances (e.g., postgresql@14-main) are shown separately
+
+### Service Management from Terminal
+
+If you need to manage the monitoring tool itself:
 
 - **Check status**: `sudo systemctl status odoo-dev-monitor`
 - **Start service**: `sudo systemctl start odoo-dev-monitor`
 - **Stop service**: `sudo systemctl stop odoo-dev-monitor`
 - **Restart service**: `sudo systemctl restart odoo-dev-monitor`
 - **View logs**: `sudo journalctl -u odoo-dev-monitor -f`
-
-### Updating the Tool
-
-When a new version is available, you can update your installation using one of these methods:
-
-#### Method 1: Using the Update Script
-
-```bash
-sudo /opt/odoo-server-moon/scripts/update.sh
-```
-
-Options:
-- `--branch BRANCH`: Git branch to use (default: main)
-- `--no-restart`: Don't restart the service after update
-
-#### Method 2: Using the Installation Script
-
-The installation script automatically detects if the tool is already installed and updates it:
-
-```bash
-curl -sSL https://raw.githubusercontent.com/solutionsunity/odoo-server-moon/main/scripts/install-remote.sh | sudo bash
-```
-
-To skip updating an existing installation, use the `--no-update` flag.
 
 ## Development
 
