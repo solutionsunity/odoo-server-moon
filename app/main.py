@@ -47,6 +47,14 @@ async def get_dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
 
 
+@app.get("/reference", response_class=HTMLResponse)
+async def get_reference(request: Request):
+    """
+    Render the Odoo developer reference page.
+    """
+    return templates.TemplateResponse("reference.html", {"request": request})
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """

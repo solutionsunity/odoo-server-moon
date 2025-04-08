@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odoo Developer Reference</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/reference.css') }}">
+    <link rel="icon" href="{{ url_for('static', path='/img/favicon.ico') }}" type="image/x-icon">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Odoo Developer Quick Reference</h1>
+            <a href="/" class="btn btn-primary back-btn">Back to Dashboard</a>
+        </header>
+
+        <div class="reference-content">
+            <h2>🧾 APT-Based Install on WSL (Ubuntu)</h2>
+
+            <section class="reference-section">
+                <h2>📁 Important Paths</h2>
+                <table>
+                    <tr><th>Item</th><th>Location</th></tr>
+                    <tr><td>Odoo config file</td><td>/etc/odoo/odoo.conf</td></tr>
+                    <tr><td>Odoo log file</td><td>/var/log/odoo/odoo.log</td></tr>
+                    <tr><td>Custom addons</td><td>/odoo/custom/addons/</td></tr>
+                    <tr><td>Default addons</td><td>/usr/lib/python3/dist-packages/odoo/addons/</td></tr>
+                </table>
+            </section>
+
+            <section class="reference-section">
+                <h2>🚀 Odoo Service Commands</h2>
+                <pre><code>sudo service odoo status
+sudo service odoo start
+sudo service odoo stop
+sudo service odoo restart</code></pre>
+            </section>
+
+            <section class="reference-section">
+                <h2>🛠️ Module Development</h2>
+                <pre><code>sudo service odoo stop
+sudo -u odoo /usr/bin/odoo -d &lt;dbname&gt; -u &lt;module_name&gt; --dev=all
+sudo -u odoo /usr/bin/odoo -d &lt;dbname&gt; -i &lt;module_name&gt; --dev=all</code></pre>
+            </section>
+
+            <section class="reference-section">
+                <h2>📒 Logs and Config</h2>
+                <pre><code>tail -f /var/log/odoo/odoo.log
+sudo nano /etc/odoo/odoo.conf</code></pre>
+            </section>
+
+            <section class="reference-section">
+                <h2>🐘 PostgreSQL Basics</h2>
+                <pre><code>sudo service postgresql status
+sudo service postgresql start
+sudo service postgresql stop
+sudo -u postgres psql</code></pre>
+
+                <h3>Inside PostgreSQL CLI</h3>
+                <pre><code>\l       -- List databases
+\du      -- List roles
+\q       -- Quit</code></pre>
+
+                <h3>Backup & Restore</h3>
+                <pre><code># Backup
+sudo -u postgres pg_dump &lt;dbname&gt; &gt; ~/backup.sql
+
+# Restore
+sudo -u postgres createdb newdb
+sudo -u postgres psql newdb &lt; ~/backup.sql</code></pre>
+            </section>
+
+            <section class="reference-section">
+                <h2>🔧 File Permissions</h2>
+                <pre><code>sudo chown -R odoo:odoo /odoo/custom/addons/
+sudo chmod -R 755 /odoo/custom/addons/</code></pre>
+            </section>
+
+            <section class="reference-section">
+                <h2>🧠 Tips for Devs</h2>
+                <ul>
+                    <li>Restart Odoo after code changes: <code>sudo service odoo restart</code></li>
+                    <li>Use <code>tail -f /var/log/odoo/odoo.log</code> to debug in real time</li>
+                    <li>Edit <code>/etc/odoo/odoo.conf</code> to change ports, paths, etc.</li>
+                    <li>Extend <code>addons_path</code> to include custom addons:</li>
+                </ul>
+                <pre><code>addons_path = /odoo/custom/addons,/usr/lib/python3/dist-packages/odoo/addons</code></pre>
+            </section>
+
+            <section class="reference-section">
+                <h2>🌐 Web Access from Windows</h2>
+                <ul>
+                    <li>Ensure Odoo is bound to <code>0.0.0.0</code> or <code>127.0.0.1</code> in <code>odoo.conf</code></li>
+                    <li>Access via browser at: <code>http://localhost:8069</code></li>
+                </ul>
+            </section>
+        </div>
+
+        <footer>
+            <p>Odoo Dev Server Monitor - Reference Guide for Odoo Developers</p>
+        </footer>
+    </div>
+</body>
+</html>

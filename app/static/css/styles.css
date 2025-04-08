@@ -43,6 +43,31 @@ header {
     border-bottom: 1px solid var(--border-color);
 }
 
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.reference-btn {
+    text-decoration: none;
+    padding: 8px 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.reference-btn:before {
+    content: '📚';
+    font-size: 1.1em;
+}
+
 h1, h2, h3 {
     margin-bottom: 10px;
 }
