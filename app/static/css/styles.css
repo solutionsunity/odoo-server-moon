@@ -155,6 +155,11 @@ h1, h2, h3 {
     margin-bottom: 20px;
 }
 
+.full-width {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
 .services-panel, .modules-panel, .users-panel {
     background-color: white;
     padding: 20px;
@@ -379,6 +384,38 @@ h1, h2, h3 {
     overflow-y: auto;
 }
 
+.module-header {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    grid-template-areas: "path ownership permissions";
+    gap: 20px;
+    padding: 10px 12px;
+    font-weight: bold;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--background-color);
+}
+
+.module-path-header {
+    grid-area: path;
+}
+
+.module-ownership-header {
+    grid-area: ownership;
+}
+
+.module-permissions-header {
+    grid-area: permissions;
+}
+
+.module-note {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: var(--light-color);
+    border-left: 4px solid var(--warning-color);
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
 /* Users list */
 .users-list {
     display: flex;
@@ -409,10 +446,33 @@ h1, h2, h3 {
     color: var(--dark-color);
 }
 
+.user-header {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    grid-template-areas: "name status actions";
+    gap: 10px;
+    padding: 10px 12px;
+    font-weight: bold;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--background-color);
+}
+
+.user-name-header {
+    grid-area: name;
+}
+
+.user-status-header {
+    grid-area: status;
+}
+
+.user-actions-header {
+    grid-area: actions;
+}
+
 .user-item {
     display: grid;
     grid-template-columns: 1fr auto auto;
-    grid-template-areas: "name status action";
+    grid-template-areas: "name status actions";
     gap: 10px;
     align-items: center;
     padding: 12px;
@@ -450,15 +510,18 @@ h1, h2, h3 {
     color: white;
 }
 
-.user-action {
-    grid-area: action;
+.user-actions {
+    grid-area: actions;
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
 }
 
 .module-item {
     display: grid;
     grid-template-columns: 1fr auto auto;
-    grid-template-areas: "path info actions";
-    gap: 10px;
+    grid-template-areas: "path ownership permissions";
+    gap: 20px;
     align-items: center;
     padding: 12px;
     border-radius: 5px;
@@ -478,11 +541,19 @@ h1, h2, h3 {
     font-weight: bold;
 }
 
-.module-info {
-    grid-area: info;
+.module-ownership {
+    grid-area: ownership;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.module-permissions {
+    grid-area: permissions;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 5px;
 }
 
@@ -507,6 +578,25 @@ h1, h2, h3 {
     grid-area: actions;
     display: flex;
     gap: 5px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+.status-valid {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.status-invalid {
+    background-color: var(--danger-color);
+    color: white;
 }
 
 .status-ok {

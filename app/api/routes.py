@@ -4,6 +4,7 @@ API routes for the Odoo Dev Server Monitoring Tool.
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from typing import Dict, List, Any, Optional
+import subprocess
 
 from app.services.service_monitor import (
     get_all_services_status,
@@ -443,6 +444,74 @@ async def add_user_to_odoo_group_endpoint(request: AddUserToGroupRequest):
             return ServiceResponse(
                 success=False,
                 message=result["message"],
+                error="See logs for details"
+            )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post(
+    "/users/take-ownership",
+    summary="Take ownership of module directories",
+    description="Take ownership of module directories for a user",
+    response_model=ServiceResponse,
+    responses={
+        200: {"description": "User has taken ownership of module directories"},
+        500: {"description": "Failed to take ownership of module directories"}
+    }
+)
+async def take_ownership_endpoint(request: AddUserToGroupRequest):
+    """
+    Take ownership of module directories for a user.
+
+    Args:
+        request: Request containing the username to take ownership
+
+    Returns:
+        ServiceResponse: Result of the operation
+
+    Raises:
+        HTTPException: If there's an error taking ownership
+    """
+    try:
+        # Get module directories
+        directories = get_module_directories()
+
+        # Take ownership of each directory
+        success_count = 0
+        failed_directories = []
+
+        for directory in directories:
+            try:
+                # Use chown to change ownership
+                subprocess.run(
+                    ["sudo", "chown", "-R", f"{request.username}:{get_odoo_group()}", directory],
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                success_count += 1
+            except subprocess.CalledProcessError as e:
+                failed_directories.append({
+                    "path": directory,
+                    "error": e.stderr
+                })
+
+        if success_count == len(directories):
+            return ServiceResponse(
+                success=True,
+                message=f"User {request.username} has taken ownership of all {success_count} module directories"
+            )
+        elif success_count > 0:
+            return ServiceResponse(
+                success=True,
+                message=f"User {request.username} has taken ownership of {success_count} out of {len(directories)} module directories",
+                error=f"Failed to take ownership of {len(failed_directories)} directories"
+            )
+        else:
+            return ServiceResponse(
+                success=False,
+                message=f"Failed to take ownership of any module directories for user {request.username}",
                 error="See logs for details"
             )
     except Exception as e:

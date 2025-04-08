@@ -51,7 +51,7 @@
             </div>
         </section>
 
-        <!-- Main Content: Services on Left, Modules on Right -->
+        <!-- 2nd Row: Services on Left, Users on Right -->
         <div class="main-content">
             <section class="services-panel">
                 <div class="panel-header">
@@ -67,10 +67,10 @@
                 </div>
             </section>
 
-            <section class="modules-panel">
+            <section class="users-panel">
                 <div class="panel-header">
-                    <h2>Module Directories & Users</h2>
-                    <button class="refresh-btn" id="refresh-modules-btn" title="Refresh Modules">
+                    <h2>Users Management</h2>
+                    <button class="refresh-btn" id="refresh-users-btn" title="Refresh Users">
                         <span class="refresh-icon">↻</span>
                     </button>
                 </div>
@@ -86,17 +86,31 @@
                             <span class="info-label">Odoo Group:</span>
                             <span class="info-value" id="odoo-group">Loading...</span>
                         </div>
-                        <button class="btn btn-small" id="show-users-btn">Manage Users</button>
                     </div>
                 </div>
 
-                <!-- Module Directories -->
-                <div class="modules-list" id="modules-list">
-                    <div class="module-item loading">
-                        <div class="module-path">Loading modules...</div>
+                <!-- Users List -->
+                <div class="users-list" id="users-list">
+                    <div class="user-item loading">
+                        <div class="user-name">Loading users...</div>
                     </div>
                 </div>
             </section>
+        </div>
+
+        <!-- 3rd Row: Full-width Module Directories -->
+        <div class="modules-panel full-width">
+            <div class="panel-header">
+                <h2>Module Directories</h2>
+                <button class="refresh-btn" id="refresh-modules-btn" title="Refresh Modules">
+                    <span class="refresh-icon">↻</span>
+                </button>
+            </div>
+            <div class="modules-list" id="modules-list">
+                <div class="module-item loading">
+                    <div class="module-path">Loading modules...</div>
+                </div>
+            </div>
         </div>
 
         <!-- Logs Panel at Bottom -->

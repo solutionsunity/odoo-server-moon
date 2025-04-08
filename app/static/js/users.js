@@ -65,6 +65,15 @@ function updateUsersList(users) {
 
     let html = '';
 
+    // Add table header
+    html += `
+        <div class="user-header">
+            <div class="user-name-header">Username</div>
+            <div class="user-status-header">Status</div>
+            <div class="user-actions-header">Actions</div>
+        </div>
+    `;
+
     for (const user of users) {
         const inGroup = user.in_odoo_group;
         const statusClass = inGroup ? 'in-group' : 'not-in-group';
@@ -74,8 +83,9 @@ function updateUsersList(users) {
             <div class="user-item" data-username="${user.username}">
                 <div class="user-name">${user.username}</div>
                 <div class="user-status ${statusClass}">${statusText}</div>
-                <div class="user-action">
-                    ${!inGroup ? `<button class="btn btn-primary" data-action="add-to-group" data-username="${user.username}">Add to Group</button>` : ''}
+                <div class="user-actions">
+                    ${!inGroup ? `<button class="btn btn-primary btn-small" data-action="add-to-group" data-username="${user.username}">Add to Group</button>` : ''}
+                    <button class="btn btn-secondary btn-small" data-action="take-ownership" data-username="${user.username}">Take Ownership</button>
                 </div>
             </div>
         `;
@@ -111,6 +121,9 @@ function handleUserAction(event) {
     if (target.matches('[data-action="add-to-group"]')) {
         const username = target.dataset.username;
         showAddToGroupModal(username);
+    } else if (target.matches('[data-action="take-ownership"]')) {
+        const username = target.dataset.username;
+        takeOwnership(username);
     }
 }
 
@@ -182,6 +195,46 @@ async function handleAddUserToGroup() {
         // Reset the button
         userModalActionBtn.disabled = false;
         userModalActionBtn.textContent = 'Add to Odoo Group';
+    }
+}
+
+// Take ownership of module directories
+async function takeOwnership(username) {
+    try {
+        // Show confirmation dialog
+        if (!confirm(`Are you sure you want ${username} to take ownership of module directories?`)) {
+            return;
+        }
+
+        addLogEntry(`Taking ownership of module directories for ${username}...`);
+
+        // Call the API
+        const response = await fetch('/api/users/take-ownership', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username: username })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            addLogEntry(`${username} has taken ownership of module directories successfully`);
+            showToast(`${username} has taken ownership of module directories`, 'success');
+
+            // Refresh modules list
+            if (typeof fetchModules === 'function') {
+                fetchModules();
+            }
+        } else {
+            addLogEntry(`Error taking ownership for ${username}: ${data.error || 'Unknown error'}`, 'error');
+            showToast(`Error taking ownership: ${data.error || 'Unknown error'}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error taking ownership:', error);
+        addLogEntry(`Error taking ownership for ${username}: ${error.message}`, 'error');
+        showToast(`Error taking ownership: ${error.message}`, 'error');
     }
 }
 

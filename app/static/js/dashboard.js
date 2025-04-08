@@ -180,49 +180,58 @@ function updateModulesList(modules) {
 
     let html = '';
 
+    // Add table header
+    html += `
+        <div class="module-header">
+            <div class="module-path-header">Directory</div>
+            <div class="module-ownership-header">Ownership</div>
+            <div class="module-permissions-header">Permissions</div>
+        </div>
+    `;
+
     for (const module of modules) {
-        const statusClass = getStatusClass(module.status);
         const permissions = module.permissions || {};
 
-        // Create a status message
-        let statusMessage = module.status;
-        let statusDetails = '';
+        // Determine ownership status
+        const owner = permissions.owner || 'unknown';
+        const group = permissions.group || 'unknown';
+        const ownershipText = `${owner}:${group}`;
+        let ownershipStatus = 'invalid';
 
-        if (module.status === 'error') {
-            statusMessage = 'Error';
-            if (!permissions.readable || !permissions.executable) {
-                statusDetails = 'Directory not accessible';
-            } else if (permissions.owner && permissions.owner !== 'odoo') {
-                statusDetails = `Wrong owner: ${permissions.owner}`;
-            }
-        } else if (module.status === 'warning') {
-            statusMessage = 'Warning';
-            if (!permissions.writable) {
-                statusDetails = 'Not writable';
-            } else if (!permissions.files_consistent) {
-                statusDetails = 'Inconsistent permissions';
-            } else if (permissions.group && permissions.group !== 'odoo') {
-                statusDetails = `Wrong group: ${permissions.group}`;
-            }
-        } else if (module.status === 'ok') {
-            statusMessage = 'OK';
-            statusDetails = 'Permissions correct';
+        if ((owner === 'odoo' && group === 'odoo') ||
+            (permissions.current_user_in_odoo_group === true)) {
+            ownershipStatus = 'valid';
+        }
+
+        // Determine permissions status
+        const permissionsText = permissions.mode || 'unknown';
+        let permissionsStatus = 'invalid';
+
+        if (permissionsText === '775') {
+            permissionsStatus = 'valid';
         }
 
         html += `
-            <div class="module-item" data-path="${module.path}" data-status="${module.status}">
+            <div class="module-item" data-path="${module.path}">
                 <div class="module-path">${module.path}</div>
-                <div class="module-info">
-                    <div class="module-status status-${statusClass}">${statusMessage}</div>
-                    ${statusDetails ? `<div class="module-status-details">${statusDetails}</div>` : ''}
+                <div class="module-ownership">
+                    ${ownershipText}
+                    <span class="status-badge status-${ownershipStatus}">${ownershipStatus.toUpperCase()}</span>
                 </div>
-                <div class="module-actions">
-                    <button class="btn btn-details" data-action="show-details" data-path="${module.path}">Details</button>
-                    ${module.status !== 'ok' ? `<button class="btn btn-fix" data-action="fix" data-path="${module.path}">Fix</button>` : ''}
+                <div class="module-permissions">
+                    ${permissionsText}
+                    <span class="status-badge status-${permissionsStatus}">${permissionsStatus.toUpperCase()}</span>
                 </div>
             </div>
         `;
     }
+
+    // Add note about taking ownership
+    html += `
+        <div class="module-note">
+            <p>Note: To fix permissions, users should take ownership from the Users Management panel above.</p>
+        </div>
+    `;
 
     if (html === '') {
         html = '<div class="module-item"><div class="module-path">No modules found</div></div>';
