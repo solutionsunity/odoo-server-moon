@@ -8,7 +8,7 @@ const odooUserElement = document.getElementById('odoo-user');
 const odooGroupElement = document.getElementById('odoo-group');
 const modalOdooUserElement = document.getElementById('modal-odoo-user');
 const modalOdooGroupElement = document.getElementById('modal-odoo-group');
-const showUsersBtn = document.getElementById('show-users-btn');
+const refreshUsersBtn = document.getElementById('refresh-users-btn');
 const usersModal = document.getElementById('users-modal');
 const closeUsersModalBtn = document.getElementById('close-users-modal-btn');
 const usersModalCloseBtn = document.getElementById('users-modal-close-btn');
@@ -29,7 +29,7 @@ function initUserManagement() {
     fetchUsers();
 
     // Add event listeners
-    showUsersBtn.addEventListener('click', showUsersModal);
+    refreshUsersBtn.addEventListener('click', fetchUsers);
     closeUsersModalBtn.addEventListener('click', closeUsersModal);
     usersModalCloseBtn.addEventListener('click', closeUsersModal);
     userModalActionBtn.addEventListener('click', handleAddUserToGroup);

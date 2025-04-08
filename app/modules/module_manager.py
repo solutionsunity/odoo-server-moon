@@ -326,6 +326,9 @@ def check_directory_permissions(directory: str) -> Dict[str, Any]:
         current_user = os.getlogin()
         current_user_in_odoo_group = is_user_in_odoo_group(current_user)
 
+        # Get the mode in octal format (e.g., 775)
+        mode_octal = oct(dir_stat.st_mode)[-3:]
+
         result = {
             "status": status,
             "readable": readable,
@@ -343,7 +346,8 @@ def check_directory_permissions(directory: str) -> Dict[str, Any]:
             "is_odoo_owner": is_odoo_owner,
             "is_odoo_group": is_odoo_group,
             "odoo_group_members": odoo_group_members,
-            "current_user_in_odoo_group": current_user_in_odoo_group
+            "current_user_in_odoo_group": current_user_in_odoo_group,
+            "mode": mode_octal
         }
 
         if not files_consistent:
