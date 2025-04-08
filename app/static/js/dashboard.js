@@ -493,6 +493,9 @@ function showModuleDetails(path, permissions) {
     // Add permission details
     const permissionItems = [
         { key: 'status', label: 'Status' },
+        { key: 'owner', label: 'Owner' },
+        { key: 'group', label: 'Group' },
+        { key: 'is_odoo_owner', label: 'Odoo is Owner' },
         { key: 'readable', label: 'Readable' },
         { key: 'writable', label: 'Writable' },
         { key: 'executable', label: 'Executable' },
