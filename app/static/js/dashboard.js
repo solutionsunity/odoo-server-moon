@@ -126,10 +126,21 @@ function updateServicesList(services) {
         `;
     }
 
-    // Add PostgreSQL instances if any
+    // Add PostgreSQL main service and its instances if any
     if (postgresInstances.length > 0) {
         html += '<div class="service-group">';
-        html += '<div class="service-group-header">PostgreSQL Instances</div>';
+
+        // Add main PostgreSQL service
+        const mainPostgresStatus = postgresInstances.some(instance => instance.status === 'active') ? 'active' : 'inactive';
+        const statusClass = getStatusClass(mainPostgresStatus);
+
+        html += `
+            <div class="service-item postgres-main" data-service="postgres">
+                <div class="status-indicator ${statusClass}" title="${mainPostgresStatus}"></div>
+                <div class="service-name">PostgreSQL</div>
+                <div class="service-group-header">PostgreSQL Instances</div>
+            </div>
+        `;
 
         for (const instance of postgresInstances) {
             const statusClass = getStatusClass(instance.status);

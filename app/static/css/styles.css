@@ -6,6 +6,7 @@
     --warning-color: #f39c12;
     --dark-color: #2c3e50;
     --light-color: #ecf0f1;
+    --light-color-rgb: 236, 240, 241;
     --border-color: #ddd;
     --text-color: #333;
     --background-color: #f5f5f5;
@@ -220,20 +221,33 @@ h1, h2, h3 {
 
 .service-group {
     margin-bottom: 15px;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
 }
 
 .service-group-header {
     font-weight: bold;
-    margin-bottom: 5px;
     color: var(--dark-color);
     font-size: 0.9rem;
     text-transform: uppercase;
+    grid-area: controls;
+    text-align: right;
+}
+
+.postgres-main {
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--light-color);
+    margin-bottom: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
 .postgres-instance {
     margin-left: 20px;
     border-left: 3px solid var(--primary-color);
     padding-left: 10px;
+    background-color: rgba(var(--light-color-rgb), 0.5);
 }
 
 .service-item {
