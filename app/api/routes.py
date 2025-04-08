@@ -17,6 +17,11 @@ from app.modules.module_manager import (
     check_directory_permissions,
     fix_directory_permissions
 )
+from app.modules.module_manager import get_odoo_user, get_odoo_group
+from app.modules.user_manager import (
+    get_human_users,
+    add_user_to_odoo_group
+)
 
 # Create router with tags for API documentation
 router = APIRouter(
@@ -49,6 +54,18 @@ class FixPermissionsRequest(BaseModel):
         schema_extra = {
             "example": {
                 "path": "/var/lib/odoo/addons"
+            }
+        }
+
+
+class AddUserToGroupRequest(BaseModel):
+    """Request model for adding a user to the odoo group."""
+    username: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "username": "developer1"
             }
         }
 
@@ -274,7 +291,7 @@ async def get_modules():
                 path=directory,
                 status=permissions["status"],
                 permissions=permissions
-            ).dict())
+            ).model_dump())
 
         return {
             "modules": modules
@@ -355,5 +372,78 @@ async def get_module_permissions(path: str):
         }
     except HTTPException:
         raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get(
+    "/users",
+    summary="Get human users",
+    description="Get a list of all human users on the system with their odoo group membership status",
+    response_description="List of human users with odoo group membership status",
+    responses={
+        200: {"description": "List of human users"},
+        500: {"description": "Failed to get human users"}
+    }
+)
+async def get_users():
+    """
+    Get a list of all human users on the system with their odoo group membership status.
+
+    Returns:
+        Dict containing a list of human users with odoo group membership status
+
+    Raises:
+        HTTPException: If there's an error getting the human users
+    """
+    try:
+        users = get_human_users()
+
+        return {
+            "users": users,
+            "odoo_user": get_odoo_user(),
+            "odoo_group": get_odoo_group()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post(
+    "/users/add-to-odoo-group",
+    summary="Add user to odoo group",
+    description="Add a user to the odoo group",
+    response_model=ServiceResponse,
+    responses={
+        200: {"description": "User added to odoo group"},
+        500: {"description": "Failed to add user to odoo group"}
+    }
+)
+async def add_user_to_odoo_group_endpoint(request: AddUserToGroupRequest):
+    """
+    Add a user to the odoo group.
+
+    Args:
+        request: Request containing the username to add to the odoo group
+
+    Returns:
+        ServiceResponse: Result of the operation
+
+    Raises:
+        HTTPException: If there's an error adding the user to the odoo group
+    """
+    try:
+        result = add_user_to_odoo_group(request.username)
+
+        if result["status"] == "success" or result["status"] == "already_in_group":
+            return ServiceResponse(
+                success=True,
+                message=result["message"]
+            )
+        else:
+            return ServiceResponse(
+                success=False,
+                message=result["message"],
+                error="See logs for details"
+            )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

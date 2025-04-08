@@ -12,6 +12,34 @@ from typing import List, Dict, Any
 from app.config.config import get_config
 
 
+def get_odoo_user():
+    """
+    Get the username for the Odoo service user.
+
+    Returns:
+        str: Username for Odoo service, defaults to 'odoo' if not found in service file
+    """
+    # Try to get the user from the systemd service file
+    try:
+        # Check if odoo service exists
+        result = subprocess.run(
+            ["systemctl", "cat", "odoo.service"],
+            capture_output=True,
+            text=True
+        )
+
+        if result.returncode == 0:
+            # Extract User= line from service file
+            for line in result.stdout.splitlines():
+                if line.strip().startswith("User="):
+                    return line.strip().split("=")[1]
+    except Exception as e:
+        logger.warning(f"Error getting odoo user from service file: {e}")
+
+    # Default to 'odoo' if not found
+    return 'odoo'
+
+
 def get_odoo_uid():
     """
     Get the user ID for the odoo user.
@@ -20,10 +48,32 @@ def get_odoo_uid():
         int: User ID for odoo, or -1 if not found
     """
     try:
-        return pwd.getpwnam('odoo').pw_uid
+        odoo_user = get_odoo_user()
+        return pwd.getpwnam(odoo_user).pw_uid
     except KeyError:
         # If odoo user doesn't exist, return -1
         return -1
+
+
+def get_odoo_group():
+    """
+    Get the group name for the Odoo service group.
+
+    Returns:
+        str: Group name for Odoo service, defaults to 'odoo' if not found
+    """
+    # Try to get the group from the odoo user's primary group
+    try:
+        import grp
+        odoo_user = get_odoo_user()
+        user_info = pwd.getpwnam(odoo_user)
+        group_info = grp.getgrgid(user_info.pw_gid)
+        return group_info.gr_name
+    except (KeyError, ImportError) as e:
+        logger.warning(f"Error getting odoo group from user: {e}")
+
+    # Default to 'odoo' if not found
+    return 'odoo'
 
 
 def get_odoo_gid():
@@ -35,7 +85,8 @@ def get_odoo_gid():
     """
     try:
         import grp
-        return grp.getgrnam('odoo').gr_gid
+        odoo_group = get_odoo_group()
+        return grp.getgrnam(odoo_group).gr_gid
     except (KeyError, ImportError):
         # If odoo group doesn't exist or grp module is not available, return -1
         return -1
@@ -50,7 +101,8 @@ def get_odoo_group_members():
     """
     try:
         import grp
-        return grp.getgrnam('odoo').gr_mem
+        odoo_group = get_odoo_group()
+        return grp.getgrnam(odoo_group).gr_mem
     except (KeyError, ImportError):
         # If odoo group doesn't exist or grp module is not available, return empty list
         return []
@@ -179,11 +231,13 @@ def check_directory_permissions(directory: str) -> Dict[str, Any]:
         # Check for files/dirs with incorrect ownership
         try:
             # Find files not owned by odoo user (limit to 5)
+            odoo_user = get_odoo_user()
+            odoo_group = get_odoo_group()
             cmd = [
                 "find", directory,
                 "-type", "f",
-                "!", "-user", "odoo",
-                "-o", "!", "-group", "odoo",
+                "!", "-user", odoo_user,
+                "-o", "!", "-group", odoo_group,
                 "-maxdepth", "3",  # Limit depth for performance
                 "-print",
                 "-quit"  # Stop after first match
@@ -334,9 +388,11 @@ def fix_directory_permissions(directory: str) -> Dict[str, Any]:
         dir_cmd = ["sudo", "chmod", "775", directory]
         subprocess.run(dir_cmd, check=True)
 
-        # Then, set ownership to odoo:odoo
+        # Then, set ownership to odoo user and group
         # This ensures the Odoo service has full access
-        own_cmd = ["sudo", "chown", "odoo:odoo", directory]
+        odoo_user = get_odoo_user()
+        odoo_group = get_odoo_group()
+        own_cmd = ["sudo", "chown", f"{odoo_user}:{odoo_group}", directory]
         subprocess.run(own_cmd, check=True)
 
         # Add the current user to the odoo group if not already a member
@@ -360,9 +416,11 @@ def fix_directory_permissions(directory: str) -> Dict[str, Any]:
         failed_count = 0
 
         try:
-            # First, recursively set ownership to odoo:odoo
-            logger.info(f"Setting ownership recursively for {directory}")
-            chown_cmd = ["sudo", "chown", "-R", "odoo:odoo", directory]
+            # First, recursively set ownership to odoo user and group
+            odoo_user = get_odoo_user()
+            odoo_group = get_odoo_group()
+            logger.info(f"Setting ownership recursively for {directory} to {odoo_user}:{odoo_group}")
+            chown_cmd = ["sudo", "chown", "-R", f"{odoo_user}:{odoo_group}", directory]
             subprocess.run(chown_cmd, check=True)
 
             # Count the number of files and directories affected

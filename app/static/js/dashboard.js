@@ -23,6 +23,8 @@ const closeModalBtn = document.getElementById('close-modal-btn');
 const refreshServicesBtn = document.getElementById('refresh-services-btn');
 const refreshModulesBtn = document.getElementById('refresh-modules-btn');
 const clearLogsBtn = document.getElementById('clear-logs-btn');
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
 
 // WebSocket connection
 let socket;
@@ -49,6 +51,11 @@ function initDashboard() {
     refreshServicesBtn.addEventListener('click', fetchStatus);
     refreshModulesBtn.addEventListener('click', fetchModules);
     clearLogsBtn.addEventListener('click', clearLogs);
+
+    // Add tab switching event listeners
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => switchTab(button.dataset.tab));
+    });
 
     // Modal event listeners
     closeModalBtn.addEventListener('click', closeModal);
@@ -112,12 +119,12 @@ function updateServicesList(services) {
         html += `
             <div class="service-item" data-service="${serviceName}">
                 <div class="service-name">${displayName}</div>
-                <div class="service-status status-${statusClass}">${status}</div>
                 <div class="service-controls">
                     <button class="btn btn-start" data-action="start" data-service="${serviceName}" ${status === 'active' ? 'disabled' : ''}>Start</button>
                     <button class="btn btn-stop" data-action="stop" data-service="${serviceName}" ${status === 'inactive' ? 'disabled' : ''}>Stop</button>
                     <button class="btn btn-restart" data-action="restart" data-service="${serviceName}">Restart</button>
                 </div>
+                <div class="service-status status-${statusClass}">${status}</div>
             </div>
         `;
     }
@@ -138,12 +145,12 @@ function updateServicesList(services) {
             html += `
                 <div class="service-item postgres-instance" data-service="${instance.name}">
                     <div class="service-name">${displayName}</div>
-                    <div class="service-status status-${statusClass}">${instance.status}</div>
                     <div class="service-controls">
                         <button class="btn btn-start" data-action="start" data-service="${instance.name}" ${instance.status === 'active' ? 'disabled' : ''}>Start</button>
                         <button class="btn btn-stop" data-action="stop" data-service="${instance.name}" ${instance.status === 'inactive' ? 'disabled' : ''}>Stop</button>
                         <button class="btn btn-restart" data-action="restart" data-service="${instance.name}">Restart</button>
                     </div>
+                    <div class="service-status status-${statusClass}">${instance.status}</div>
                 </div>
             `;
         }
@@ -263,7 +270,34 @@ function updateSystemMetrics(resources) {
     // Update System Info
     const infoContent = systemInfo.querySelector('.info-content');
     const date = new Date();
-    infoContent.textContent = `Last updated: ${date.toLocaleTimeString()}`;
+
+    // Add OS information if available
+    let systemInfoText = `Last updated: ${date.toLocaleTimeString()}`;
+
+    if (resources.os) {
+        const os = resources.os;
+        let osInfo = '';
+
+        if (os.distribution) {
+            osInfo += `${os.distribution}`;
+        } else if (os.system) {
+            osInfo += `${os.system} ${os.release || ''}`;
+        }
+
+        if (os.kernel) {
+            osInfo += ` (${os.kernel})`;
+        }
+
+        if (os.architecture) {
+            osInfo += ` [${os.architecture}]`;
+        }
+
+        if (osInfo) {
+            systemInfoText = `${osInfo}<br>Last updated: ${date.toLocaleTimeString()}`;
+        }
+    }
+
+    infoContent.innerHTML = systemInfoText;
 }
 
 // Handle button clicks
@@ -613,6 +647,32 @@ function getStatusClass(status) {
             return 'ok';
         default:
             return 'warning';
+    }
+}
+
+// Switch between tabs
+function switchTab(tabId) {
+    // Update tab buttons
+    tabButtons.forEach(button => {
+        if (button.dataset.tab === tabId) {
+            button.classList.add('active');
+        } else {
+            button.classList.remove('active');
+        }
+    });
+
+    // Update tab content
+    tabContents.forEach(content => {
+        if (content.id === `${tabId}-tab`) {
+            content.classList.remove('hidden');
+        } else {
+            content.classList.add('hidden');
+        }
+    });
+
+    // If switching to users tab, fetch users data
+    if (tabId === 'users' && typeof fetchUsers === 'function') {
+        fetchUsers();
     }
 }
 

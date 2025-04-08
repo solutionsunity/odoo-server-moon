@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
     <link rel="icon" href="{{ url_for('static', path='/img/favicon.ico') }}" type="image/x-icon">
     <script src="{{ url_for('static', path='/js/dashboard.js') }}" defer></script>
+    <script src="{{ url_for('static', path='/js/users.js') }}" defer></script>
 </head>
 <body>
     <div class="container">
@@ -50,8 +51,14 @@
             </div>
         </section>
 
+        <!-- Tabs Navigation -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="services-modules">Services & Modules</button>
+            <button class="tab-btn" data-tab="users">User Management</button>
+        </div>
+
         <!-- Main Content: Services on Left, Modules on Right -->
-        <div class="main-content">
+        <div class="main-content tab-content" id="services-modules-tab">
             <section class="services-panel">
                 <div class="panel-header">
                     <h2>Services</h2>
@@ -76,6 +83,33 @@
                 <div class="modules-list" id="modules-list">
                     <div class="module-item loading">
                         <div class="module-path">Loading modules...</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- User Management Tab -->
+        <div class="main-content tab-content hidden" id="users-tab">
+            <section class="users-panel">
+                <div class="panel-header">
+                    <h2>User Management</h2>
+                    <button class="refresh-btn" id="refresh-users-btn" title="Refresh Users">
+                        <span class="refresh-icon">↻</span>
+                    </button>
+                </div>
+                <div class="users-info">
+                    <div class="info-item">
+                        <span class="info-label">Odoo User:</span>
+                        <span class="info-value" id="odoo-user">Loading...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Odoo Group:</span>
+                        <span class="info-value" id="odoo-group">Loading...</span>
+                    </div>
+                </div>
+                <div class="users-list" id="users-list">
+                    <div class="user-item loading">
+                        <div class="user-name">Loading users...</div>
                     </div>
                 </div>
             </section>
@@ -113,6 +147,29 @@
             <div class="modal-footer">
                 <button class="btn btn-primary" id="modal-action-btn">Fix Permissions</button>
                 <button class="btn btn-secondary" id="modal-close-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for User Actions -->
+    <div class="modal" id="user-action-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="user-modal-title">Add User to Odoo Group</h3>
+                <button class="close-btn" id="close-user-modal-btn">✕</button>
+            </div>
+            <div class="modal-body" id="user-modal-body">
+                <p>Add the selected user to the odoo group to grant them permission to modify Odoo module files.</p>
+                <div class="user-info" id="selected-user-info">
+                    <div class="info-item">
+                        <span class="info-label">Username:</span>
+                        <span class="info-value" id="selected-username">username</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="user-modal-action-btn">Add to Odoo Group</button>
+                <button class="btn btn-secondary" id="user-modal-close-btn">Cancel</button>
             </div>
         </div>
     </div>
