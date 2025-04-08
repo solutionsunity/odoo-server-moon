@@ -193,8 +193,18 @@ def check_directory_permissions(directory: str) -> Dict[str, Any]:
     if not os.path.exists(directory):
         logger.warning(f"Directory does not exist: {directory}")
         return {
-            "status": "not_found",
+            "status": "error",
             "error": f"Directory does not exist: {directory}"
+        }
+
+    # Check if we have permission to stat the directory
+    try:
+        os.stat(directory)
+    except PermissionError:
+        logger.warning(f"Permission denied for directory: {directory}")
+        return {
+            "status": "error",
+            "error": f"Permission denied for directory: {directory}"
         }
 
     try:
@@ -323,7 +333,12 @@ def check_directory_permissions(directory: str) -> Dict[str, Any]:
         odoo_group_members = get_odoo_group_members()
 
         # Check if current user is in odoo group
-        current_user = os.getlogin()
+        try:
+            current_user = os.getlogin()
+        except OSError:
+            # Fall back to environment variable or effective user ID
+            current_user = os.environ.get('USER') or os.environ.get('USERNAME') or pwd.getpwuid(os.geteuid()).pw_name
+
         current_user_in_odoo_group = is_user_in_odoo_group(current_user)
 
         # Get the mode in octal format (e.g., 775)
@@ -356,6 +371,12 @@ def check_directory_permissions(directory: str) -> Dict[str, Any]:
         logger.info(f"Directory {directory} permission status: {status}")
         return result
 
+    except OSError as e:
+        logger.error(f"OS error checking directory permissions: {e}")
+        return {
+            "status": "error",
+            "error": f"OS error: {str(e)}"
+        }
     except Exception as e:
         logger.error(f"Error checking directory permissions: {e}")
         return {

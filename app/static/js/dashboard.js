@@ -192,38 +192,56 @@ function updateModulesList(modules) {
     for (const module of modules) {
         const permissions = module.permissions || {};
 
-        // Determine ownership status
-        const owner = permissions.owner || 'unknown';
-        const group = permissions.group || 'unknown';
-        const ownershipText = `${owner}:${group}`;
-        let ownershipStatus = 'invalid';
-
-        if ((owner === 'odoo' && group === 'odoo') ||
-            (permissions.current_user_in_odoo_group === true)) {
-            ownershipStatus = 'valid';
-        }
-
-        // Determine permissions status
-        const permissionsText = permissions.mode || 'unknown';
-        let permissionsStatus = 'invalid';
-
-        if (permissionsText === '775') {
-            permissionsStatus = 'valid';
-        }
-
-        html += `
-            <div class="module-item" data-path="${module.path}">
-                <div class="module-path">${module.path}</div>
-                <div class="module-ownership">
-                    ${ownershipText}
-                    <span class="status-badge status-${ownershipStatus}">${ownershipStatus.toUpperCase()}</span>
+        // Check if there's an error in the permissions
+        if (permissions.error) {
+            // Handle error case
+            html += `
+                <div class="module-item" data-path="${module.path}">
+                    <div class="module-path">${module.path}</div>
+                    <div class="module-ownership">
+                        <span class="error-message">Error</span>
+                        <span class="status-badge status-invalid">INVALID</span>
+                    </div>
+                    <div class="module-permissions">
+                        <span class="error-message">${permissions.error}</span>
+                        <span class="status-badge status-invalid">INVALID</span>
+                    </div>
                 </div>
-                <div class="module-permissions">
-                    ${permissionsText}
-                    <span class="status-badge status-${permissionsStatus}">${permissionsStatus.toUpperCase()}</span>
+            `;
+        } else {
+            // Determine ownership status
+            const owner = permissions.owner || 'unknown';
+            const group = permissions.group || 'unknown';
+            const ownershipText = `${owner}:${group}`;
+            let ownershipStatus = 'invalid';
+
+            if ((owner === 'odoo' && group === 'odoo') ||
+                (permissions.current_user_in_odoo_group === true)) {
+                ownershipStatus = 'valid';
+            }
+
+            // Determine permissions status
+            const permissionsText = permissions.mode || 'unknown';
+            let permissionsStatus = 'invalid';
+
+            if (permissionsText === '775') {
+                permissionsStatus = 'valid';
+            }
+
+            html += `
+                <div class="module-item" data-path="${module.path}">
+                    <div class="module-path">${module.path}</div>
+                    <div class="module-ownership">
+                        ${ownershipText}
+                        <span class="status-badge status-${ownershipStatus}">${ownershipStatus.toUpperCase()}</span>
+                    </div>
+                    <div class="module-permissions">
+                        ${permissionsText}
+                        <span class="status-badge status-${permissionsStatus}">${permissionsStatus.toUpperCase()}</span>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        }
     }
 
     // Add note about taking ownership
