@@ -186,6 +186,7 @@ function updateModulesList(modules) {
             <div class="module-path-header">Directory</div>
             <div class="module-ownership-header">Ownership</div>
             <div class="module-permissions-header">Permissions</div>
+            <div class="module-actions-header">Actions</div>
         </div>
     `;
 
@@ -205,6 +206,10 @@ function updateModulesList(modules) {
                     <div class="module-permissions">
                         <span class="error-message">${permissions.error}</span>
                         <span class="status-badge status-invalid">INVALID</span>
+                    </div>
+                    <div class="module-actions">
+                        <button class="btn btn-primary btn-small" data-action="fix-permissions" data-path="${module.path}">Fix Permissions</button>
+                        <button class="btn btn-secondary btn-small" data-action="make-odoo-owner" data-path="${module.path}">Make Odoo Owner</button>
                     </div>
                 </div>
             `;
@@ -238,6 +243,12 @@ function updateModulesList(modules) {
                     <div class="module-permissions">
                         ${permissionsText}
                         <span class="status-badge status-${permissionsStatus}">${permissionsStatus.toUpperCase()}</span>
+                    </div>
+                    <div class="module-actions">
+                        ${ownershipStatus !== 'valid' || permissionsStatus !== 'valid' ?
+                            `<button class="btn btn-primary btn-small" data-action="fix-permissions" data-path="${module.path}">Fix Permissions</button>` : ''}
+                        ${ownershipStatus !== 'valid' ?
+                            `<button class="btn btn-secondary btn-small" data-action="make-odoo-owner" data-path="${module.path}">Make Odoo Owner</button>` : ''}
                     </div>
                 </div>
             `;
@@ -379,12 +390,15 @@ function handleButtonClicks(event) {
         if (action === 'start' || action === 'stop' || action === 'restart') {
             const service = target.dataset.service;
             controlService(service, action);
-        } else if (action === 'fix') {
+        } else if (action === 'fix' || action === 'fix-permissions') {
             const path = target.dataset.path;
             fixPermissions(path);
         } else if (action === 'show-details') {
             const path = target.dataset.path;
             showModuleDetailsFromPath(path);
+        } else if (action === 'make-odoo-owner') {
+            const path = target.dataset.path;
+            makeOdooOwner(path);
         }
     }
 }
@@ -709,6 +723,37 @@ async function showModuleDetailsFromPath(path) {
         console.error('Error loading module details:', error);
         showToast(`Error loading module details: ${error.message}`);
         addLogEntry(`Error loading details for ${path}: ${error.message}`, 'error');
+    }
+}
+
+// Make odoo the owner of a directory
+async function makeOdooOwner(path) {
+    try {
+        addLogEntry(`Making odoo the owner of ${path}...`);
+        showToast(`Making odoo the owner of ${path}...`, 'info');
+
+        const response = await fetch('/api/modules/make-odoo-owner', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ path })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            addLogEntry(`Successfully made odoo the owner of ${path}`);
+            showToast(`Successfully made odoo the owner of ${path}`, 'success');
+            fetchModules(); // Refresh the modules list
+        } else {
+            addLogEntry(`Error making odoo the owner of ${path}: ${data.error || 'Unknown error'}`, 'error');
+            showToast(`Error: ${data.error || 'Failed to make odoo the owner'}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error making odoo the owner:', error);
+        showToast(`Error making odoo the owner: ${error.message}`, 'error');
+        addLogEntry(`Error making odoo the owner of ${path}: ${error.message}`, 'error');
     }
 }
 

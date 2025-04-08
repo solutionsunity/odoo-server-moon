@@ -386,8 +386,8 @@ h1, h2, h3 {
 
 .module-header {
     display: grid;
-    grid-template-columns: 1fr auto auto;
-    grid-template-areas: "path ownership permissions";
+    grid-template-columns: 1fr auto auto auto;
+    grid-template-areas: "path ownership permissions actions";
     gap: 20px;
     padding: 10px 12px;
     font-weight: bold;
@@ -405,6 +405,10 @@ h1, h2, h3 {
 
 .module-permissions-header {
     grid-area: permissions;
+}
+
+.module-actions-header {
+    grid-area: actions;
 }
 
 .module-note {
@@ -519,8 +523,8 @@ h1, h2, h3 {
 
 .module-item {
     display: grid;
-    grid-template-columns: 1fr auto auto;
-    grid-template-areas: "path ownership permissions";
+    grid-template-columns: 1fr auto auto auto;
+    grid-template-areas: "path ownership permissions actions";
     gap: 20px;
     align-items: center;
     padding: 12px;
@@ -544,17 +548,26 @@ h1, h2, h3 {
 .module-ownership {
     grid-area: ownership;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
 }
 
 .module-permissions {
     grid-area: permissions;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.module-actions {
+    grid-area: actions;
+    display: flex;
     gap: 5px;
+    flex-wrap: wrap;
 }
 
 .module-status {

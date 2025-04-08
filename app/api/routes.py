@@ -5,6 +5,10 @@ from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from typing import Dict, List, Any, Optional
 import subprocess
+import logging
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 from app.services.service_monitor import (
     get_all_services_status,
@@ -334,6 +338,60 @@ async def fix_module_permissions(request: FixPermissionsRequest, background_task
             message=f"Permission fix started for {request.path}"
         )
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post(
+    "/modules/make-odoo-owner",
+    summary="Make odoo the owner of a directory",
+    description="Change ownership of a directory to the odoo user",
+    response_model=ServiceResponse,
+    responses={
+        200: {"description": "Ownership change successful"},
+        500: {"description": "Failed to change ownership"}
+    }
+)
+async def make_odoo_owner(request: FixPermissionsRequest):
+    """
+    Make odoo the owner of a directory.
+
+    Args:
+        request: Request containing the path to change ownership
+
+    Returns:
+        ServiceResponse: Result of the operation
+
+    Raises:
+        HTTPException: If there's an error changing ownership
+    """
+    try:
+        logger.info(f"Making odoo the owner of {request.path}")
+
+        # Get odoo user and group
+        odoo_user = get_odoo_user()
+        odoo_group = get_odoo_group()
+
+        # Use chown to change ownership
+        subprocess.run(
+            ["sudo", "chown", "-R", f"{odoo_user}:{odoo_group}", request.path],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+
+        return ServiceResponse(
+            success=True,
+            message=f"Successfully made odoo the owner of {request.path}"
+        )
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Error making odoo the owner: {e.stderr}")
+        return ServiceResponse(
+            success=False,
+            message=f"Failed to make odoo the owner of {request.path}",
+            error=e.stderr
+        )
+    except Exception as e:
+        logger.error(f"Error making odoo the owner: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
