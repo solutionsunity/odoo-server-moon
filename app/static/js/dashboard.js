@@ -114,6 +114,7 @@ function updateServicesList(services) {
 
         html += `
             <div class="service-item" data-service="${serviceName}">
+                <div class="status-indicator ${statusClass}" title="${status}"></div>
                 <div class="service-name">${displayName}</div>
                 <div class="service-controls">
                     <button class="btn btn-start" data-action="start" data-service="${serviceName}" ${status === 'active' ? 'disabled' : ''}>Start</button>
@@ -140,6 +141,7 @@ function updateServicesList(services) {
 
             html += `
                 <div class="service-item postgres-instance" data-service="${instance.name}">
+                    <div class="status-indicator ${statusClass}" title="${instance.status}"></div>
                     <div class="service-name">${displayName}</div>
                     <div class="service-controls">
                         <button class="btn btn-start" data-action="start" data-service="${instance.name}" ${instance.status === 'active' ? 'disabled' : ''}>Start</button>
