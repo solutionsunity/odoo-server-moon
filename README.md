@@ -43,6 +43,7 @@ Available options:
 - `--branch BRANCH`: Git branch to use (default: main)
 - `--port PORT`: Port to run the server on (default: 8008)
 - `--no-start`: Don't start the service after installation
+- `--no-update`: Don't update if already installed
 
 ### Manual Installation
 
@@ -106,6 +107,30 @@ If installed as a service:
 - **Stop service**: `sudo systemctl stop odoo-dev-monitor`
 - **Restart service**: `sudo systemctl restart odoo-dev-monitor`
 - **View logs**: `sudo journalctl -u odoo-dev-monitor -f`
+
+### Updating the Tool
+
+When a new version is available, you can update your installation using one of these methods:
+
+#### Method 1: Using the Update Script
+
+```bash
+sudo /opt/odoo-server-moon/scripts/update.sh
+```
+
+Options:
+- `--branch BRANCH`: Git branch to use (default: main)
+- `--no-restart`: Don't restart the service after update
+
+#### Method 2: Using the Installation Script
+
+The installation script automatically detects if the tool is already installed and updates it:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/solutionsunity/odoo-server-moon/main/scripts/install-remote.sh | sudo bash
+```
+
+To skip updating an existing installation, use the `--no-update` flag.
 
 ## Development
 

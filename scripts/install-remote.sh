@@ -12,6 +12,7 @@ BRANCH="main"
 PORT="8008"
 AUTO_START="yes"
 REPO_URL="https://github.com/solutionsunity/odoo-server-moon.git"
+UPDATE_EXISTING="yes"
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -32,6 +33,10 @@ while [[ $# -gt 0 ]]; do
       AUTO_START="no"
       shift
       ;;
+    --no-update)
+      UPDATE_EXISTING="no"
+      shift
+      ;;
     --help)
       echo "Usage: $0 [options]"
       echo "Options:"
@@ -39,6 +44,7 @@ while [[ $# -gt 0 ]]; do
       echo "  --branch BRANCH Git branch to use (default: main)"
       echo "  --port PORT     Port to run the server on (default: 8008)"
       echo "  --no-start      Don't start the service after installation"
+      echo "  --no-update     Don't update if already installed"
       echo "  --help          Show this help message"
       exit 0
       ;;
@@ -71,18 +77,58 @@ command -v git >/dev/null 2>&1 || { echo "Error: git is required but not install
 command -v python3 >/dev/null 2>&1 || { echo "Error: python3 is required but not installed. Please install python3 and try again."; exit 1; }
 command -v pip3 >/dev/null 2>&1 || { echo "Error: pip3 is required but not installed. Please install pip3 and try again."; exit 1; }
 
-# Create installation directory if it doesn't exist
-if [ ! -d "$INSTALL_DIR" ]; then
-  echo "Creating installation directory: $INSTALL_DIR"
-  mkdir -p "$INSTALL_DIR"
+# Check if the tool is already installed
+if [ -d "$INSTALL_DIR/.git" ]; then
+  if [ "$UPDATE_EXISTING" = "yes" ]; then
+    echo "Tool already installed at $INSTALL_DIR. Updating..."
+
+    # Change to the installation directory
+    cd "$INSTALL_DIR"
+
+    # Save the current version for reference
+    CURRENT_VERSION=$(git rev-parse HEAD)
+    echo "Current version: $CURRENT_VERSION"
+
+    # Stash any local changes
+    echo "Stashing any local changes..."
+    git stash
+
+    # Fetch the latest changes
+    echo "Fetching latest changes..."
+    git fetch origin
+
+    # Check if there are updates available
+    LATEST_VERSION=$(git rev-parse origin/$BRANCH)
+    if [ "$CURRENT_VERSION" == "$LATEST_VERSION" ]; then
+      echo "Already up to date. No update needed."
+    else
+      echo "New version available: $LATEST_VERSION"
+
+      # Update to the latest version
+      echo "Updating to the latest version..."
+      git checkout $BRANCH
+      git pull origin $BRANCH
+    fi
+  else
+    echo "Tool already installed at $INSTALL_DIR."
+    echo "Use --no-update to skip this check or run the update script:"
+    echo "  sudo $INSTALL_DIR/scripts/update.sh"
+    exit 0
+  fi
+else
+  # Create installation directory if it doesn't exist
+  if [ ! -d "$INSTALL_DIR" ]; then
+    echo "Creating installation directory: $INSTALL_DIR"
+    mkdir -p "$INSTALL_DIR"
+  fi
+
+  # Clone the repository
+  echo "Cloning repository from $REPO_URL (branch: $BRANCH)..."
+  git clone -b "$BRANCH" "$REPO_URL" "$INSTALL_DIR"
+
+  # Change to the installation directory
+  cd "$INSTALL_DIR"
 fi
-
-# Clone the repository
-echo "Cloning repository from $REPO_URL (branch: $BRANCH)..."
-git clone -b "$BRANCH" "$REPO_URL" "$INSTALL_DIR"
-
-# Change to the installation directory
-cd "$INSTALL_DIR"
 
 # Update port in configuration if needed
 if [ "$PORT" != "8008" ]; then
