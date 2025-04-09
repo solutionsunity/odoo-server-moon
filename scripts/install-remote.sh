@@ -75,14 +75,6 @@ echo "=================================================="
 # Check for required tools
 command -v git >/dev/null 2>&1 || { echo "Error: git is required but not installed. Please install git and try again."; exit 1; }
 
-# Source common functions
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/common.sh"
-
-# Detect Python command and check version
-detect_python_command || exit 1
-check_python_version || exit 1
-
 # Check if the tool is already installed
 if [ -d "$INSTALL_DIR/.git" ]; then
   if [ "$UPDATE_EXISTING" = "yes" ]; then
@@ -141,6 +133,14 @@ if [ "$PORT" != "8008" ]; then
   echo "Updating port to $PORT in configuration..."
   sed -i "s/\"port\": 8008/\"port\": $PORT/g" config/config.json
 fi
+
+# Source common functions now that we have the repository
+echo "Loading common functions..."
+source "$INSTALL_DIR/scripts/common.sh"
+
+# Detect Python command and check version
+detect_python_command || exit 1
+check_python_version || exit 1
 
 # Setup Python environment (detect, check version, create venv, install dependencies)
 setup_python_environment "$INSTALL_DIR/venv" "$INSTALL_DIR/requirements.txt" || exit 1
