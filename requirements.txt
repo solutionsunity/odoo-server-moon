@@ -1,3 +1,6 @@
+# Python version constraint - this file requires Python 3.7+
+
+# Application dependencies
 fastapi>=0.68.0
 uvicorn>=0.15.0
 pytest>=6.2.5

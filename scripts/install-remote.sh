@@ -74,8 +74,48 @@ echo "=================================================="
 
 # Check for required tools
 command -v git >/dev/null 2>&1 || { echo "Error: git is required but not installed. Please install git and try again."; exit 1; }
-command -v python3 >/dev/null 2>&1 || { echo "Error: python3 is required but not installed. Please install python3 and try again."; exit 1; }
-command -v pip3 >/dev/null 2>&1 || { echo "Error: pip3 is required but not installed. Please install pip3 and try again."; exit 1; }
+
+# Detect Python command (python or python3)
+PYTHON_CMD="python3"
+PIP_CMD="pip3"
+
+# Check if python command exists and is Python 3.x
+if command -v python &> /dev/null; then
+  if python -c "import sys; sys.exit(0 if sys.version_info.major == 3 else 1)" &> /dev/null; then
+    PYTHON_CMD="python"
+    PIP_CMD="pip"
+  fi
+fi
+
+# Verify the selected Python command exists
+if ! command -v $PYTHON_CMD &> /dev/null; then
+  echo "Error: $PYTHON_CMD command not found. Please install Python 3.7 or newer."
+  exit 1
+fi
+
+# Check if pip command exists
+if ! command -v $PIP_CMD &> /dev/null; then
+  echo "Error: $PIP_CMD command not found. Please install pip for Python 3."
+  exit 1
+fi
+
+# Check Python version compatibility
+echo "Checking Python version compatibility..."
+PYTHON_VERSION_INFO=$($PYTHON_CMD -c "import sys; major=sys.version_info.major; minor=sys.version_info.minor; print(f'{major}.{minor}')")
+PYTHON_VERSION_CHECK=$($PYTHON_CMD -c "import sys; exit(1 if (sys.version_info.major < 3 or (sys.version_info.major == 3 and sys.version_info.minor < 7)) else 0)")
+PYTHON_VERSION_CHECK_EXIT=$?
+
+if [ $PYTHON_VERSION_CHECK_EXIT -ne 0 ]; then
+  echo "Error: Python version $PYTHON_VERSION_INFO is not supported."
+  echo "This application requires Python 3.7 or newer."
+  echo "Please upgrade your Python installation."
+  exit 1
+fi
+
+# Check if Python version is 3.12 or newer for venv creation options
+USE_SYSTEM_SITE_PACKAGES=$($PYTHON_CMD -c "import sys; print('yes' if (sys.version_info.major > 3 or (sys.version_info.major == 3 and sys.version_info.minor >= 12)) else 'no')")
+
+echo "Python version $PYTHON_VERSION_INFO detected. Compatible version."
 
 # Check if the tool is already installed
 if [ -d "$INSTALL_DIR/.git" ]; then
@@ -136,9 +176,24 @@ if [ "$PORT" != "8008" ]; then
   sed -i "s/\"port\": 8008/\"port\": $PORT/g" config/config.json
 fi
 
+# Create virtual environment if it doesn't exist
+if [ ! -d "$INSTALL_DIR/venv" ]; then
+  echo "Creating virtual environment..."
+  if [ "$USE_SYSTEM_SITE_PACKAGES" = "yes" ]; then
+    echo "Using --system-site-packages flag for Python $PYTHON_VERSION_INFO compatibility"
+    $PYTHON_CMD -m venv --system-site-packages "$INSTALL_DIR/venv"
+  else
+    $PYTHON_CMD -m venv "$INSTALL_DIR/venv"
+  fi
+fi
+
+# Activate virtual environment
+echo "Activating virtual environment..."
+source "$INSTALL_DIR/venv/bin/activate"
+
 # Install dependencies
 echo "Installing dependencies..."
-pip3 install -r requirements.txt
+pip install -r requirements.txt
 
 # Create logs directory if it doesn't exist
 mkdir -p logs

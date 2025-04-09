@@ -19,10 +19,13 @@ A web-based tool for monitoring and managing Odoo development servers locally. T
 
 ### Prerequisites
 
-- Python 3.x
-- Odoo development environment
-- PostgreSQL
-- sudo access (for service control and permission fixes)
+- **Python**: Version 3.7 or newer required
+  - Python 3.7-3.11: Standard support
+  - Python 3.12+: Supported with automatic system-site-packages configuration
+  - Python < 3.7: Not supported
+- **Odoo development environment**
+- **PostgreSQL**
+- **sudo access** (for service control and permission fixes)
 
 ### Installation
 
@@ -154,6 +157,23 @@ If you need to manage the monitoring tool itself:
 - **Stop service**: `sudo systemctl stop odoo-dev-monitor`
 - **Restart service**: `sudo systemctl restart odoo-dev-monitor`
 - **View logs**: `sudo journalctl -u odoo-dev-monitor -f`
+
+## Python Version Compatibility
+
+This tool is designed to work with Python 3.7 and newer versions. The installation and update scripts automatically detect your Python version and apply appropriate configuration:
+
+- **Python 3.7-3.11**: Standard virtual environment setup is used
+- **Python 3.12+**: Virtual environment is created with the `--system-site-packages` flag to ensure compatibility with newer Python versions
+- **Python < 3.7**: Not supported - you'll receive a clear error message if you try to run the tool with an unsupported version
+
+### Python Command Detection
+
+The tool automatically detects whether to use `python` or `python3` command based on your system configuration:
+
+- On systems where `python` points to Python 3.x, the tool will use `python` and `pip`
+- On systems where `python` points to Python 2.x or doesn't exist, the tool will use `python3` and `pip3`
+
+This ensures compatibility across different Linux distributions and environments without requiring manual configuration.
 
 ## Development
 
