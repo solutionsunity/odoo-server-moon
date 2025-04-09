@@ -3,6 +3,12 @@
 # Odoo Dev Server Monitoring Tool - Remote Installation Script
 # This script downloads and installs the tool from GitHub
 
+# Ensure we're running with bash
+if [ -z "$BASH_VERSION" ]; then
+  echo "This script must be run with bash. Please use: bash $0"
+  exit 1
+fi
+
 # Exit on error
 set -e
 
