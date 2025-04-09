@@ -16,48 +16,16 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "Installing from directory: $SCRIPT_DIR"
 
-# Detect Python command (python or python3)
-PYTHON_CMD="python3"
-PIP_CMD="pip3"
+# Source common functions
+source "$SCRIPT_DIR/common.sh"
 
-# Check if python command exists and is Python 3.x
-if command -v python &> /dev/null; then
-  if python -c "import sys; sys.exit(0 if sys.version_info.major == 3 else 1)" &> /dev/null; then
-    PYTHON_CMD="python"
-    PIP_CMD="pip"
-  fi
-fi
+# Detect Python command and check version
+detect_python_command || exit 1
+check_python_version || exit 1
 
-# Verify the selected Python command exists
-if ! command -v $PYTHON_CMD &> /dev/null; then
-  echo "Error: $PYTHON_CMD command not found. Please install Python 3.7 or newer."
-  exit 1
-fi
-
-# Check if pip command exists
-if ! command -v $PIP_CMD &> /dev/null; then
-  echo "Error: $PIP_CMD command not found. Please install pip for Python 3."
-  exit 1
-fi
-
-# Check Python version compatibility
-echo "Checking Python version compatibility..."
-PYTHON_VERSION_INFO=$($PYTHON_CMD -c "import sys; major=sys.version_info.major; minor=sys.version_info.minor; print(f'{major}.{minor}')")
-PYTHON_VERSION_CHECK=$($PYTHON_CMD -c "import sys; exit(1 if (sys.version_info.major < 3 or (sys.version_info.major == 3 and sys.version_info.minor < 7)) else 0)")
-PYTHON_VERSION_CHECK_EXIT=$?
-
-if [ $PYTHON_VERSION_CHECK_EXIT -ne 0 ]; then
-  echo "Error: Python version $PYTHON_VERSION_INFO is not supported."
-  echo "This application requires Python 3.7 or newer."
-  echo "Please upgrade your Python installation."
-  exit 1
-fi
-
-echo "Python version $PYTHON_VERSION_INFO detected. Compatible version."
-
-# Install dependencies
-echo "Installing dependencies..."
-$PIP_CMD install -r "$SCRIPT_DIR/requirements.txt"
+# Setup Python environment (detect, check version, create venv, install dependencies)
+PARENT_DIR="$(dirname "$SCRIPT_DIR")"
+setup_python_environment "$PARENT_DIR/venv" "$SCRIPT_DIR/requirements.txt" || exit 1
 
 # Create logs directory if it doesn't exist
 mkdir -p "$SCRIPT_DIR/logs"

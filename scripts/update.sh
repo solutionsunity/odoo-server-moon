@@ -109,66 +109,16 @@ echo "Updating to the latest version..."
 git checkout $BRANCH
 git pull origin $BRANCH
 
-# Detect Python command (python or python3)
-PYTHON_CMD="python3"
-PIP_CMD="pip3"
+# Source common functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
-# Check if python command exists and is Python 3.x
-if command -v python &> /dev/null; then
-  if python -c "import sys; sys.exit(0 if sys.version_info.major == 3 else 1)" &> /dev/null; then
-    PYTHON_CMD="python"
-    PIP_CMD="pip"
-  fi
-fi
+# Detect Python command and check version
+detect_python_command || exit 1
+check_python_version || exit 1
 
-# Verify the selected Python command exists
-if ! command -v $PYTHON_CMD &> /dev/null; then
-  echo "Error: $PYTHON_CMD command not found. Please install Python 3.7 or newer."
-  exit 1
-fi
-
-# Check if pip command exists
-if ! command -v $PIP_CMD &> /dev/null; then
-  echo "Error: $PIP_CMD command not found. Please install pip for Python 3."
-  exit 1
-fi
-
-# Check Python version compatibility for venv options
-echo "Checking Python version compatibility..."
-PYTHON_VERSION_INFO=$($PYTHON_CMD -c "import sys; major=sys.version_info.major; minor=sys.version_info.minor; print(f'{major}.{minor}')")
-PYTHON_VERSION_CHECK=$($PYTHON_CMD -c "import sys; exit(1 if (sys.version_info.major < 3 or (sys.version_info.major == 3 and sys.version_info.minor < 7)) else 0)")
-PYTHON_VERSION_CHECK_EXIT=$?
-
-if [ $PYTHON_VERSION_CHECK_EXIT -ne 0 ]; then
-  echo "Error: Python version $PYTHON_VERSION_INFO is not supported."
-  echo "This application requires Python 3.7 or newer."
-  echo "Please upgrade your Python installation."
-  exit 1
-fi
-
-# Check if Python version is 3.12 or newer for venv creation options
-USE_SYSTEM_SITE_PACKAGES=$($PYTHON_CMD -c "import sys; print('yes' if (sys.version_info.major > 3 or (sys.version_info.major == 3 and sys.version_info.minor >= 12)) else 'no')")
-
-echo "Python version $PYTHON_VERSION_INFO detected. Compatible version."
-
-# Create or update virtual environment
-if [ ! -d "$INSTALL_DIR/venv" ]; then
-  echo "Creating virtual environment..."
-  if [ "$USE_SYSTEM_SITE_PACKAGES" = "yes" ]; then
-    echo "Using --system-site-packages flag for Python $PYTHON_VERSION_INFO compatibility"
-    $PYTHON_CMD -m venv --system-site-packages "$INSTALL_DIR/venv"
-  else
-    $PYTHON_CMD -m venv "$INSTALL_DIR/venv"
-  fi
-fi
-
-# Activate virtual environment
-echo "Activating virtual environment..."
-source "$INSTALL_DIR/venv/bin/activate"
-
-# Install any new dependencies
-echo "Installing dependencies..."
-pip install -r requirements.txt
+# Setup Python environment (detect, check version, create venv, install dependencies)
+setup_python_environment "$INSTALL_DIR/venv" "$INSTALL_DIR/requirements.txt" || exit 1
 
 # Update the service file if needed
 if [ -f "/etc/systemd/system/odoo-dev-monitor.service" ] && [ -f "$INSTALL_DIR/scripts/odoo-dev-monitor.service" ]; then
