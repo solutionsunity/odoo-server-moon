@@ -10,7 +10,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PARENT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Source common functions
-source "$SCRIPT_DIR/common.sh"
+if [ -f "$SCRIPT_DIR/common.sh" ]; then
+    source "$SCRIPT_DIR/common.sh"
+else
+    echo "Error: common.sh not found. Please run this script from the repository directory."
+    exit 1
+fi
 
 # Detect Python command and check version
 detect_python_command || exit 1

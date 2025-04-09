@@ -109,9 +109,9 @@ echo "Updating to the latest version..."
 git checkout $BRANCH
 git pull origin $BRANCH
 
-# Source common functions
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/common.sh"
+# Source common functions now that we have the repository
+echo "Loading common functions..."
+source "$INSTALL_DIR/scripts/common.sh"
 
 # Detect Python command and check version
 detect_python_command || exit 1
