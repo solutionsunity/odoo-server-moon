@@ -132,6 +132,9 @@ if [ -f "/etc/systemd/system/odoo-dev-monitor.service" ] && [ -f "$INSTALL_DIR/s
   CURRENT_USER=$(logname)
   sed -i "s|User=.*|User=$CURRENT_USER|g" /etc/systemd/system/odoo-dev-monitor.service
 
+  # Update the ExecStart path to use the virtual environment
+  sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/venv/bin/python -m app.main|g" /etc/systemd/system/odoo-dev-monitor.service
+
   # Reload systemd
   systemctl daemon-reload
 fi

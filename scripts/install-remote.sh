@@ -165,6 +165,8 @@ cp scripts/odoo-dev-monitor.service /etc/systemd/system/
 # Update the service file
 sed -i "s|WorkingDirectory=.*|WorkingDirectory=$INSTALL_DIR|g" /etc/systemd/system/odoo-dev-monitor.service
 sed -i "s|User=gbadmin|User=$(logname)|g" /etc/systemd/system/odoo-dev-monitor.service
+# Update the ExecStart path to use the virtual environment
+sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/venv/bin/python -m app.main|g" /etc/systemd/system/odoo-dev-monitor.service
 
 # Reload systemd
 systemctl daemon-reload

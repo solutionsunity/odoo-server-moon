@@ -6,7 +6,8 @@ After=network.target
 Type=simple
 User=gbadmin
 WorkingDirectory=/home/gbadmin/dev-server-moon
-ExecStart=/usr/bin/python3 odoo-monitor.py
+# Use the Python interpreter from the virtual environment
+ExecStart=/home/gbadmin/dev-server-moon/venv/bin/python -m app.main
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal

@@ -49,6 +49,9 @@ sed -i "s|WorkingDirectory=.*|WorkingDirectory=$SCRIPT_DIR|g" /etc/systemd/syste
 # Update the User in the service file to the current user
 sed -i "s|User=gbadmin|User=$(logname)|g" /etc/systemd/system/odoo-dev-monitor.service
 
+# Update the ExecStart path to use the virtual environment
+sed -i "s|ExecStart=.*|ExecStart=$SCRIPT_DIR/venv/bin/python -m app.main|g" /etc/systemd/system/odoo-dev-monitor.service
+
 # Reload systemd
 systemctl daemon-reload
 
