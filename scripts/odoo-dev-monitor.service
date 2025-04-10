@@ -7,6 +7,7 @@ Type=simple
 User=gbadmin
 WorkingDirectory=/home/gbadmin/dev-server-moon
 # Use the Python interpreter from the virtual environment
+# Note: The actual path (python or python3) will be determined during installation
 ExecStart=/home/gbadmin/dev-server-moon/venv/bin/python -m app.main
 Restart=on-failure
 RestartSec=5

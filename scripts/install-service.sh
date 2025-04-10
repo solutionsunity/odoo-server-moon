@@ -50,7 +50,16 @@ sed -i "s|WorkingDirectory=.*|WorkingDirectory=$SCRIPT_DIR|g" /etc/systemd/syste
 sed -i "s|User=gbadmin|User=$(logname)|g" /etc/systemd/system/odoo-dev-monitor.service
 
 # Update the ExecStart path to use the virtual environment
-sed -i "s|ExecStart=.*|ExecStart=$SCRIPT_DIR/venv/bin/python -m app.main|g" /etc/systemd/system/odoo-dev-monitor.service
+# Check which Python executable exists in the virtual environment
+if [ -f "$SCRIPT_DIR/venv/bin/python3" ]; then
+  VENV_PYTHON="$SCRIPT_DIR/venv/bin/python3"
+elif [ -f "$SCRIPT_DIR/venv/bin/python" ]; then
+  VENV_PYTHON="$SCRIPT_DIR/venv/bin/python"
+else
+  echo "Warning: Could not find Python executable in virtual environment. Using default."
+  VENV_PYTHON="$SCRIPT_DIR/venv/bin/python"
+fi
+sed -i "s|ExecStart=.*|ExecStart=$VENV_PYTHON -m app.main|g" /etc/systemd/system/odoo-dev-monitor.service
 
 # Reload systemd
 systemctl daemon-reload
