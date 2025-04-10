@@ -121,9 +121,22 @@ check_python_version || exit 1
 setup_python_environment "$INSTALL_DIR/venv" "$INSTALL_DIR/requirements.txt" || exit 1
 
 # Update the service file if needed
-if [ -f "/etc/systemd/system/odoo-dev-monitor.service" ] && [ -f "$INSTALL_DIR/scripts/odoo-dev-monitor.service" ]; then
+if [ -f "/etc/systemd/system/odoo-dev-monitor.service" ]; then
   echo "Updating service file..."
-  cp "$INSTALL_DIR/scripts/odoo-dev-monitor.service" /etc/systemd/system/
+
+  # Check if the service file is using the virtual environment
+  if ! grep -q "venv/bin/python" "/etc/systemd/system/odoo-dev-monitor.service"; then
+    echo "Service file is not using virtual environment. Updating..."
+
+    # Backup the existing service file
+    cp "/etc/systemd/system/odoo-dev-monitor.service" "/etc/systemd/system/odoo-dev-monitor.service.bak"
+    echo "Backed up existing service file to /etc/systemd/system/odoo-dev-monitor.service.bak"
+
+    # Copy the new template if it exists
+    if [ -f "$INSTALL_DIR/scripts/odoo-dev-monitor.service" ]; then
+      cp "$INSTALL_DIR/scripts/odoo-dev-monitor.service" "/etc/systemd/system/"
+    fi
+  fi
 
   # Update the WorkingDirectory in the service file
   sed -i "s|WorkingDirectory=.*|WorkingDirectory=$INSTALL_DIR|g" /etc/systemd/system/odoo-dev-monitor.service
