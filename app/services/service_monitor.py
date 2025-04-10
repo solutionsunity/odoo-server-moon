@@ -65,7 +65,7 @@ def detect_postgresql_instances() -> List[str]:
     Detect PostgreSQL instances using systemctl.
 
     Returns:
-        List of PostgreSQL instance service names
+        List of PostgreSQL instance service names that actually exist
     """
     logger.info("Detecting PostgreSQL instances")
 
@@ -86,7 +86,21 @@ def detect_postgresql_instances() -> List[str]:
             if len(parts) >= 1 and parts[0].startswith("postgresql@"):
                 # Extract the service name (e.g., postgresql@14-main.service)
                 service_name = parts[0].replace(".service", "")
-                instances.append(service_name)
+
+                # Verify the service actually exists
+                verify_result = subprocess.run(
+                    ["systemctl", "status", service_name],
+                    capture_output=True,
+                    text=True,
+                    check=False
+                )
+
+                # Only add services that exist (return code 0 or 3)
+                # Return code 3 means the service exists but is inactive
+                if verify_result.returncode in [0, 3]:
+                    instances.append(service_name)
+                else:
+                    logger.warning(f"PostgreSQL instance {service_name} was detected but doesn't seem to exist")
 
         logger.info(f"Detected PostgreSQL instances: {instances}")
         return instances
@@ -111,25 +125,42 @@ def get_all_services_status() -> Dict[str, str]:
     result = {}
     for service_key, service_config in services.items():
         service_name = service_config["service_name"]
-        result[service_key] = get_service_status(service_name)
 
-        # Handle PostgreSQL instances
-        if service_key == "postgres":
-            # Get configured instances
-            instances = service_config.get("instances", [])
+        # Check if the main service exists
+        service_exists = True
+        verify_result = subprocess.run(
+            ["systemctl", "status", service_name],
+            capture_output=True,
+            text=True,
+            check=False
+        )
 
-            # Auto-detect instances if enabled
-            if service_config.get("auto_detect", False):
-                detected_instances = detect_postgresql_instances()
-                # Add any detected instances that aren't already in the list
-                for instance in detected_instances:
-                    if instance not in instances:
-                        instances.append(instance)
+        # Return code 4 means the service doesn't exist
+        if verify_result.returncode == 4:
+            service_exists = False
+            logger.warning(f"Service {service_name} doesn't exist")
 
-            # Add status for each instance
-            for instance in instances:
-                instance_key = f"{service_key}_{instance.replace('@', '_')}"
-                result[instance_key] = get_service_status(instance)
+        # Only add the service if it exists
+        if service_exists:
+            result[service_key] = get_service_status(service_name)
+
+            # Handle PostgreSQL instances
+            if service_key == "postgres":
+                # Get configured instances
+                instances = service_config.get("instances", [])
+
+                # Auto-detect instances if enabled
+                if service_config.get("auto_detect", False):
+                    detected_instances = detect_postgresql_instances()
+                    # Add any detected instances that aren't already in the list
+                    for instance in detected_instances:
+                        if instance not in instances:
+                            instances.append(instance)
+
+                # Add status for each instance
+                for instance in instances:
+                    instance_key = f"{service_key}_{instance.replace('@', '_')}"
+                    result[instance_key] = get_service_status(instance)
 
     return result
 

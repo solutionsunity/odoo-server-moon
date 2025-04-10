@@ -1,6 +1,6 @@
 {
   "server": {
-    "host": "0.0.0.0",
+    "host": "127.0.0.1",
     "port": 8008
   },
   "monitoring": {
@@ -14,7 +14,7 @@
     },
     "postgres": {
       "service_name": "postgresql",
-      "instances": ["postgresql@14-main"],
+      "instances": [],
       "auto_detect": true
     }
   },
